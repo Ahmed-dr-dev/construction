@@ -32,7 +32,7 @@ export default function Home() {
               <span>Accéder au Dashboard</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link href="/auth/signup" className="btn btn-secondary text-lg px-8 py-3">
+            <Link href="/signup" className="btn btn-secondary text-lg px-8 py-3">
               Créer un compte
             </Link>
           </div>
@@ -85,7 +85,7 @@ export default function Home() {
           <p className="text-primary-100 mb-6 text-lg">
             Commencez dès maintenant et simplifiez la gestion de votre magasin
           </p>
-          <Link href="/auth/signup" className="inline-block bg-white text-primary-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
+          <Link href="/signup" className="inline-block bg-white text-primary-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
             Créer un compte gratuitement
           </Link>
         </div>
