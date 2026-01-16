@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Search, Edit2, Trash2, Package } from "lucide-react";
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   category: string;
   price: number;
   stock: number;
-  minStock: number;
+  min_stock: number;
   unit: string;
 }
 
@@ -17,48 +17,66 @@ export default function ProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-
-  // Mock data
-  const [products, setProducts] = useState<Product[]>([
-    { id: 1, name: "Ciment 50kg", category: "Ciment", price: 65, stock: 150, minStock: 50, unit: "sac" },
-    { id: 2, name: "Briques rouges", category: "Briques", price: 2.5, stock: 5000, minStock: 1000, unit: "unité" },
-    { id: 3, name: "Sable fin", category: "Sable", price: 300, stock: 25, minStock: 10, unit: "m³" },
-    { id: 4, name: "Gravier", category: "Gravier", price: 350, stock: 18, minStock: 10, unit: "m³" },
-    { id: 5, name: "Fer à béton 8mm", category: "Fer", price: 45, stock: 200, minStock: 50, unit: "barre" },
-  ]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     name: "",
     category: "",
     price: "",
     stock: "",
-    minStock: "",
+    min_stock: "",
     unit: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingProduct) {
-      setProducts(products.map(p => 
-        p.id === editingProduct.id 
-          ? { ...editingProduct, ...formData, price: Number(formData.price), stock: Number(formData.stock), minStock: Number(formData.minStock) }
-          : p
-      ));
-    } else {
-      const newProduct: Product = {
-        id: products.length + 1,
-        name: formData.name,
-        category: formData.category,
-        price: Number(formData.price),
-        stock: Number(formData.stock),
-        minStock: Number(formData.minStock),
-        unit: formData.unit,
-      };
-      setProducts([...products, newProduct]);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("/api/products");
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data.products || []);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
     }
-    setShowModal(false);
-    setEditingProduct(null);
-    setFormData({ name: "", category: "", price: "", stock: "", minStock: "", unit: "" });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingProduct) {
+        const res = await fetch(`/api/products/${editingProduct.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (res.ok) {
+          await fetchProducts();
+          setShowModal(false);
+          setEditingProduct(null);
+          setFormData({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "" });
+        }
+      } else {
+        const res = await fetch("/api/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (res.ok) {
+          await fetchProducts();
+          setShowModal(false);
+          setFormData({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "" });
+        }
+      }
+    } catch (error) {
+      console.error("Error saving product:", error);
+    }
   };
 
   const handleEdit = (product: Product) => {
@@ -68,15 +86,24 @@ export default function ProductsPage() {
       category: product.category,
       price: product.price.toString(),
       stock: product.stock.toString(),
-      minStock: product.minStock.toString(),
+      min_stock: product.min_stock.toString(),
       unit: product.unit,
     });
     setShowModal(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce produit?")) {
-      setProducts(products.filter(p => p.id !== id));
+      try {
+        const res = await fetch(`/api/products/${id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          await fetchProducts();
+        }
+      } catch (error) {
+        console.error("Error deleting product:", error);
+      }
     }
   };
 
@@ -84,6 +111,10 @@ export default function ProductsPage() {
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return <div className="text-center py-12 text-gray-600">Chargement...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -95,7 +126,7 @@ export default function ProductsPage() {
         <button
           onClick={() => {
             setEditingProduct(null);
-            setFormData({ name: "", category: "", price: "", stock: "", minStock: "", unit: "" });
+            setFormData({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "" });
             setShowModal(true);
           }}
           className="btn btn-primary flex items-center space-x-2"
@@ -150,7 +181,7 @@ export default function ProductsPage() {
                     {product.stock} {product.unit}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    {product.stock <= product.minStock ? (
+                    {product.stock <= product.min_stock ? (
                       <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
                         Stock bas
                       </span>
@@ -249,8 +280,8 @@ export default function ProductsPage() {
                   <label className="label">Stock minimum</label>
                   <input
                     type="number"
-                    value={formData.minStock}
-                    onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
+                    value={formData.min_stock}
+                    onChange={(e) => setFormData({ ...formData, min_stock: e.target.value })}
                     className="input"
                     required
                   />

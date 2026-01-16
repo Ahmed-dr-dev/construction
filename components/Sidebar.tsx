@@ -31,8 +31,9 @@ export default function Sidebar({ userRole = "admin" }: SidebarProps) {
     { href: "/dashboard/invoices", label: "Factures", icon: FileText, roles: ["admin", "employee"] },
   ];
 
-  const handleSignOut = () => {
-    router.push("/auth/signin");
+  const handleSignOut = async () => {
+    await fetch("/api/auth/signout", { method: "POST" });
+    router.push("/signin");
   };
 
   return (

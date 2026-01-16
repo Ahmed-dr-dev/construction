@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
@@ -12,19 +13,19 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { signUp } = useAuth();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // Simulate signup
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const result = await signUp(email, password, fullName, role);
     
-    if (email && password && fullName) {
+    if (result.success) {
       router.push("/dashboard");
     } else {
-      setError("Tous les champs sont requis");
+      setError(result.error || "Erreur lors de l'inscription");
       setLoading(false);
     }
   };
@@ -112,7 +113,7 @@ export default function SignUp() {
 
       <p className="text-center text-sm text-gray-600 mt-4">
         Déjà un compte?{" "}
-        <Link href="/auth/signin" className="text-primary-600 hover:underline font-medium">
+        <Link href="/signin" className="text-primary-600 hover:underline font-medium">
           Se connecter
         </Link>
       </p>

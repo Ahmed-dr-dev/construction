@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   DollarSign,
   Package,
@@ -9,52 +12,64 @@ import {
 import StatCard from "@/components/StatCard";
 
 export default function Dashboard() {
-  // Mock data - Replace with real data from Supabase
-  const stats = {
-    totalSales: "125,450",
-    totalProducts: "234",
-    todaySales: "15,230",
-    totalClients: "156",
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalProducts: 0,
+    todaySales: 0,
+    totalClients: 0,
+  });
+  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
+  const [recentSales, setRecentSales] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/dashboard/stats");
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data.stats);
+        setLowStockProducts(data.lowStockProducts || []);
+        setRecentSales(data.recentSales || []);
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const lowStockProducts = [
-    { id: 1, name: "Ciment 50kg", stock: 5, minStock: 20 },
-    { id: 2, name: "Briques rouges", stock: 50, minStock: 100 },
-    { id: 3, name: "Sable fin (m³)", stock: 2, minStock: 10 },
-  ];
-
-  const recentSales = [
-    { id: 1, client: "Mohamed Alami", amount: "2,450 DH", date: "29/12/2025", status: "Payé" },
-    { id: 2, client: "Fatima Zahra", amount: "5,780 DH", date: "29/12/2025", status: "Payé" },
-    { id: 3, client: "Ahmed Benani", amount: "1,200 DH", date: "28/12/2025", status: "Non payé" },
-  ];
+  if (loading) {
+    return <div className="text-center py-12 text-gray-600">Chargement...</div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Ventes totales"
-          value={`${stats.totalSales} DH`}
+          value={`${stats.totalSales.toLocaleString()} DH`}
           icon={DollarSign}
           color="green"
-          trend={{ value: "+12.5%", isPositive: true }}
         />
         <StatCard
           title="Produits"
-          value={stats.totalProducts}
+          value={stats.totalProducts.toString()}
           icon={Package}
           color="blue"
         />
         <StatCard
           title="Ventes aujourd'hui"
-          value={`${stats.todaySales} DH`}
+          value={`${stats.todaySales.toLocaleString()} DH`}
           icon={ShoppingCart}
           color="orange"
-          trend={{ value: "+8.2%", isPositive: true }}
         />
         <StatCard
           title="Clients"
-          value={stats.totalClients}
+          value={stats.totalClients.toString()}
           icon={Users}
           color="blue"
         />
@@ -69,22 +84,26 @@ export default function Dashboard() {
             </h2>
           </div>
           <div className="space-y-3">
-            {lowStockProducts.map((product) => (
-              <div
-                key={product.id}
-                className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg"
-              >
-                <div>
-                  <p className="font-medium text-gray-900">{product.name}</p>
-                  <p className="text-sm text-gray-600">
-                    Stock: {product.stock} / Min: {product.minStock}
-                  </p>
+            {lowStockProducts.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">Aucune alerte de stock bas</p>
+            ) : (
+              lowStockProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{product.name}</p>
+                    <p className="text-sm text-gray-600">
+                      Stock: {product.stock} / Min: {product.min_stock}
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                    Urgent
+                  </span>
                 </div>
-                <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                  Urgent
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -96,29 +115,37 @@ export default function Dashboard() {
             </h2>
           </div>
           <div className="space-y-3">
-            {recentSales.map((sale) => (
-              <div
-                key={sale.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
-              >
-                <div>
-                  <p className="font-medium text-gray-900">{sale.client}</p>
-                  <p className="text-sm text-gray-600">{sale.date}</p>
+            {recentSales.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">Aucune vente récente</p>
+            ) : (
+              recentSales.map((sale) => (
+                <div
+                  key={sale.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {sale.client?.name || "Client inconnu"}
+                    </p>
+                    <p className="text-sm text-gray-600">{sale.date}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-900">
+                      {sale.total_amount?.toLocaleString()} DH
+                    </p>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        sale.status === "paid"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-orange-100 text-orange-700"
+                      }`}
+                    >
+                      {sale.status === "paid" ? "Payé" : "Non payé"}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-gray-900">{sale.amount}</p>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      sale.status === "Payé"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-orange-100 text-orange-700"
-                    }`}
-                  >
-                    {sale.status}
-                  </span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

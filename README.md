@@ -1,110 +1,49 @@
-# Plateforme de Gestion des Ventes et du Stock
+# Plateforme Web de Gestion des Ventes et du Stock
 
-Application web pour la gestion d'un magasin de matériaux de construction.
-
-## Technologies
-
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **jsPDF** (Génération de factures)
+Application web pour gérer les ventes et le stock d'un magasin de matériaux de construction.
 
 ## Installation
 
+1. Installer les dépendances:
 ```bash
 npm install
 ```
 
-## Configuration
-
-1. Créez un fichier `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+2. Créer un fichier `.env.local` avec vos clés Supabase:
+```
+NEXT_PUBLIC_SUPABASE_URL=votre_url_supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_cle_anon
 ```
 
-2. Configuration Supabase:
+3. Exécuter le script SQL `supabase-schema.sql` dans votre base de données Supabase pour créer les tables et les politiques RLS.
 
-Créez les tables suivantes dans votre base de données Supabase:
-
-```sql
--- Table users (géré par Supabase Auth)
-
--- Table products
-CREATE TABLE products (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  category TEXT NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  stock INTEGER NOT NULL,
-  min_stock INTEGER NOT NULL,
-  unit TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Table clients
-CREATE TABLE clients (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  email TEXT NOT NULL,
-  address TEXT NOT NULL,
-  total_purchases DECIMAL(10,2) DEFAULT 0,
-  unpaid_amount DECIMAL(10,2) DEFAULT 0,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Table suppliers
-CREATE TABLE suppliers (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  email TEXT NOT NULL,
-  products TEXT[] NOT NULL,
-  last_delivery DATE,
-  total_orders INTEGER DEFAULT 0,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Table sales
-CREATE TABLE sales (
-  id SERIAL PRIMARY KEY,
-  client_name TEXT NOT NULL,
-  date DATE NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  status TEXT NOT NULL,
-  items JSONB NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-## Démarrage
-
+4. Lancer le serveur de développement:
 ```bash
 npm run dev
 ```
 
-Ouvrez [http://localhost:3000](http://localhost:3000)
+## Structure de la Base de Données
+
+Le fichier `supabase-schema.sql` contient:
+- Tables: users, products, clients, suppliers, sales, sale_items, invoices
+- Fonctions: decrement_stock, update_client_stats
+- Politiques RLS pour la sécurité
 
 ## Fonctionnalités
 
-- ✅ Authentification (Connexion/Inscription)
-- ✅ Gestion des produits
-- ✅ Gestion du stock avec alertes
-- ✅ Gestion des ventes
-- ✅ Gestion des clients
-- ✅ Gestion des fournisseurs
-- ✅ Génération de factures PDF
-- ✅ Tableau de bord avec statistiques
-- ✅ Rôles (Admin/Employé)
+- Authentification (admin/employé)
+- Gestion des produits avec alertes de stock bas
+- Enregistrement des ventes avec mise à jour automatique du stock
+- Gestion des clients et fournisseurs
+- Génération de factures PDF
+- Tableau de bord avec statistiques
 
-## Structure
+## API Routes
 
-```
-app/
-├── (auth)/          # Pages d'authentification
-├── dashboard/       # Pages du tableau de bord
-components/          # Composants réutilisables
-lib/                 # Utilitaires et configuration
-```
+- `/api/auth/*` - Authentification
+- `/api/products/*` - Gestion des produits
+- `/api/sales/*` - Gestion des ventes
+- `/api/clients/*` - Gestion des clients
+- `/api/suppliers/*` - Gestion des fournisseurs
+- `/api/invoices/*` - Factures
+- `/api/dashboard/stats` - Statistiques du tableau de bord

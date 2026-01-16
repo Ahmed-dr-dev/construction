@@ -11,7 +11,7 @@ export default function Home() {
           </div>
           <span className="text-xl font-bold text-gray-900">Gestion Construction</span>
         </div>
-        <Link href="/auth/signin" className="btn btn-primary">
+        <Link href="/signin" className="btn btn-primary">
           Se connecter
         </Link>
       </nav>
