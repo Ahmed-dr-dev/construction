@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 
 interface User {
   id: string;
@@ -15,36 +14,10 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session) {
-          fetchUser();
-        } else {
-          setUser(null);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    fetchUser();
   }, []);
-
-  const checkUser = async () => {
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (authUser) {
-        await fetchUser();
-      } else {
-        setLoading(false);
-      }
-    } catch (error) {
-      setLoading(false);
-    }
-  };
 
   const fetchUser = async () => {
     try {
@@ -52,9 +25,12 @@ export function useAuth() {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error('Error fetching user:', error);
+      setUser(null);
     } finally {
       setLoading(false);
     }

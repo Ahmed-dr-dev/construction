@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET(
   request: Request,
@@ -7,9 +8,10 @@ export async function GET(
 ) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
@@ -19,7 +21,7 @@ export async function GET(
     const { data: profile } = await supabase
       .from('users')
       .select('role')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     if (profile?.role !== 'admin') {
@@ -57,9 +59,10 @@ export async function PUT(
 ) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
@@ -69,7 +72,7 @@ export async function PUT(
     const { data: profile } = await supabase
       .from('users')
       .select('role')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     if (profile?.role !== 'admin') {
@@ -80,7 +83,24 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, phone, email, products } = body;
+    const { 
+      name, 
+      phone, 
+      email, 
+      products,
+      contact_person,
+      address,
+      city,
+      country,
+      tax_id,
+      registration_number,
+      payment_terms,
+      bank_name,
+      bank_account,
+      website,
+      status,
+      notes
+    } = body;
 
     const { data, error } = await supabase
       .from('suppliers')
@@ -88,7 +108,19 @@ export async function PUT(
         name,
         phone,
         email,
-        products: Array.isArray(products) ? products : products.split(',').map((p: string) => p.trim()),
+        contact_person: contact_person || null,
+        address: address || null,
+        city: city || null,
+        country: country || null,
+        tax_id: tax_id || null,
+        registration_number: registration_number || null,
+        products: Array.isArray(products) ? products : (products ? products.split(',').map((p: string) => p.trim()).filter((p: string) => p) : []),
+        payment_terms: payment_terms || null,
+        bank_name: bank_name || null,
+        bank_account: bank_account || null,
+        website: website || null,
+        status: status || null,
+        notes: notes || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', params.id)
@@ -117,9 +149,10 @@ export async function DELETE(
 ) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
@@ -129,7 +162,7 @@ export async function DELETE(
     const { data: profile } = await supabase
       .from('users')
       .select('role')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     if (profile?.role !== 'admin') {

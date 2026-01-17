@@ -1,12 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
@@ -44,9 +46,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
@@ -72,7 +75,7 @@ export async function POST(request: Request) {
       .from('sales')
       .insert({
         client_id,
-        user_id: user.id,
+        user_id: userId,
         date,
         total_amount: totalAmount,
         status: status === 'Payé' ? 'paid' : 'unpaid',
@@ -125,6 +128,29 @@ export async function POST(request: Request) {
 
     if (clientUpdateError) {
       console.error('Erreur mise à jour client:', clientUpdateError);
+    }
+
+    // Auto-generate invoice for the sale
+    const { data: lastInvoice } = await supabase
+      .from('invoices')
+      .select('invoice_number')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    const invoiceNumber = lastInvoice
+      ? `INV-${String(parseInt(lastInvoice.invoice_number.split('-')[1]) + 1).padStart(6, '0')}`
+      : 'INV-000001';
+
+    const { error: invoiceError } = await supabase
+      .from('invoices')
+      .insert({
+        sale_id: sale.id,
+        invoice_number: invoiceNumber,
+      });
+
+    if (invoiceError) {
+      console.error('Erreur génération facture:', invoiceError);
     }
 
     const { data: saleWithDetails } = await supabase

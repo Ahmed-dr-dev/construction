@@ -1,61 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Search, Edit2, Trash2, User, Phone, Mail, MapPin } from "lucide-react";
 
 interface Client {
-  id: number;
+  id: string;
   name: string;
   phone: string;
   email: string;
   address: string;
-  totalPurchases: number;
-  unpaidAmount: number;
+  total_purchases: number;
+  unpaid_amount: number;
 }
 
 export default function ClientsPage() {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingClient, setEditingClient] = useState<Client | null>(null);
-
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: 1,
-      name: "Mohamed Alami",
-      phone: "0612345678",
-      email: "m.alami@email.com",
-      address: "Casablanca, Maroc",
-      totalPurchases: 15400,
-      unpaidAmount: 0,
-    },
-    {
-      id: 2,
-      name: "Fatima Zahra",
-      phone: "0623456789",
-      email: "f.zahra@email.com",
-      address: "Rabat, Maroc",
-      totalPurchases: 28900,
-      unpaidAmount: 0,
-    },
-    {
-      id: 3,
-      name: "Ahmed Benani",
-      phone: "0634567890",
-      email: "a.benani@email.com",
-      address: "Marrakech, Maroc",
-      totalPurchases: 12300,
-      unpaidAmount: 1200,
-    },
-    {
-      id: 4,
-      name: "Karim Tazi",
-      phone: "0645678901",
-      email: "k.tazi@email.com",
-      address: "Fès, Maroc",
-      totalPurchases: 45600,
-      unpaidAmount: 3400,
-    },
-  ]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -64,26 +28,112 @@ export default function ClientsPage() {
     address: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingClient) {
-      setClients(
-        clients.map((c) =>
-          c.id === editingClient.id ? { ...c, ...formData } : c
-        )
-      );
-    } else {
-      const newClient: Client = {
-        id: clients.length + 1,
-        ...formData,
-        totalPurchases: 0,
-        unpaidAmount: 0,
-      };
-      setClients([...clients, newClient]);
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  const fetchClients = async () => {
+    try {
+      const res = await fetch("/api/clients");
+      if (res.ok) {
+        const data = await res.json();
+        setClients(data.clients || []);
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    } finally {
+      setLoading(false);
     }
-    setShowModal(false);
-    setEditingClient(null);
-    setFormData({ name: "", phone: "", email: "", address: "" });
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Le nom est requis";
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = "Le nom doit contenir au moins 2 caractères";
+    } else if (formData.name.trim().length > 100) {
+      newErrors.name = "Le nom ne peut pas dépasser 100 caractères";
+    }
+
+    // Phone validation
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Le téléphone est requis";
+    } else {
+      const phoneClean = formData.phone.replace(/\s/g, "");
+      if (!/^[\+]?[0-9]{8,15}$/.test(phoneClean)) {
+        newErrors.phone = "Numéro de téléphone invalide (8-15 chiffres)";
+      }
+    }
+
+    // Email validation (optional but if provided, must be valid)
+    if (formData.email && formData.email.trim()) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = "Format d'email invalide";
+      } else if (formData.email.length > 255) {
+        newErrors.email = "L'email ne peut pas dépasser 255 caractères";
+      }
+    }
+
+    // Address validation (optional but if provided, check length)
+    if (formData.address && formData.address.trim().length > 500) {
+      newErrors.address = "L'adresse ne peut pas dépasser 500 caractères";
+    }
+
+    return newErrors;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      // Show first error
+      const firstError = Object.values(validationErrors)[0];
+      alert(firstError);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (editingClient) {
+        const res = await fetch(`/api/clients/${editingClient.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (res.ok) {
+          await fetchClients();
+          setShowModal(false);
+          setEditingClient(null);
+          setFormData({ name: "", phone: "", email: "", address: "" });
+        } else {
+          const data = await res.json();
+          alert(data.error || "Erreur lors de la mise à jour du client");
+        }
+      } else {
+        const res = await fetch("/api/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (res.ok) {
+          await fetchClients();
+          setShowModal(false);
+          setFormData({ name: "", phone: "", email: "", address: "" });
+        } else {
+          const data = await res.json();
+          alert(data.error || "Erreur lors de l'ajout du client");
+        }
+      }
+    } catch (error) {
+      console.error("Error saving client:", error);
+      alert("Erreur lors de la sauvegarde du client");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEdit = (client: Client) => {
@@ -97,9 +147,22 @@ export default function ClientsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce client?")) {
-      setClients(clients.filter((c) => c.id !== id));
+      try {
+        const res = await fetch(`/api/clients/${id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          await fetchClients();
+        } else {
+          const data = await res.json();
+          alert(data.error || "Erreur lors de la suppression du client");
+        }
+      } catch (error) {
+        console.error("Error deleting client:", error);
+        alert("Erreur lors de la suppression du client");
+      }
     }
   };
 
@@ -111,8 +174,12 @@ export default function ClientsPage() {
   );
 
   const totalClients = clients.length;
-  const totalUnpaid = clients.reduce((sum, c) => sum + c.unpaidAmount, 0);
-  const clientsWithDebt = clients.filter((c) => c.unpaidAmount > 0).length;
+  const totalUnpaid = clients.reduce((sum, c) => sum + (c.unpaid_amount || 0), 0);
+  const clientsWithDebt = clients.filter((c) => (c.unpaid_amount || 0) > 0).length;
+
+  if (loading) {
+    return <div className="text-center py-12 text-gray-600">Chargement...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -145,7 +212,7 @@ export default function ClientsPage() {
         </div>
         <div className="card bg-gradient-to-br from-red-50 to-red-100 border-red-200">
           <p className="text-sm text-red-700 mb-1">Total impayés</p>
-          <p className="text-3xl font-bold text-red-900">{totalUnpaid.toLocaleString()} DH</p>
+          <p className="text-3xl font-bold text-red-900">{totalUnpaid.toLocaleString()} DT</p>
         </div>
       </div>
 
@@ -176,7 +243,7 @@ export default function ClientsPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900">{client.name}</h3>
-                    <p className="text-sm text-gray-600">ID: #{client.id}</p>
+                    <p className="text-sm text-gray-600">ID: {client.id.slice(0, 8)}...</p>
                   </div>
                 </div>
                 <div className="flex space-x-1">
@@ -198,7 +265,7 @@ export default function ClientsPage() {
               <div className="space-y-2 mb-3">
                 <div className="flex items-center text-sm text-gray-600">
                   <Phone className="w-4 h-4 mr-2" />
-                  {client.phone}
+                  {client.phone || "N/A"}
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <Mail className="w-4 h-4 mr-2" />
@@ -206,7 +273,7 @@ export default function ClientsPage() {
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="w-4 h-4 mr-2" />
-                  {client.address}
+                  {client.address || "N/A"}
                 </div>
               </div>
 
@@ -214,13 +281,13 @@ export default function ClientsPage() {
                 <div>
                   <p className="text-xs text-gray-500">Total achats</p>
                   <p className="font-bold text-gray-900">
-                    {client.totalPurchases.toLocaleString()} DH
+                    {(client.total_purchases || 0).toLocaleString()} DT
                   </p>
                 </div>
                 <div>
-                  {client.unpaidAmount > 0 ? (
+                  {(client.unpaid_amount || 0) > 0 ? (
                     <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                      Dette: {client.unpaidAmount.toLocaleString()} DH
+                      Dette: {(client.unpaid_amount || 0).toLocaleString()} DT
                     </span>
                   ) : (
                     <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
@@ -282,8 +349,12 @@ export default function ClientsPage() {
                 />
               </div>
               <div className="flex space-x-3 pt-4">
-                <button type="submit" className="btn btn-primary flex-1">
-                  {editingClient ? "Modifier" : "Ajouter"}
+                <button 
+                  type="submit" 
+                  className="btn btn-primary flex-1"
+                  disabled={submitting}
+                >
+                  {submitting ? "Enregistrement..." : editingClient ? "Modifier" : "Ajouter"}
                 </button>
                 <button
                   type="button"
@@ -292,6 +363,7 @@ export default function ClientsPage() {
                     setEditingClient(null);
                   }}
                   className="btn btn-secondary flex-1"
+                  disabled={submitting}
                 >
                   Annuler
                 </button>

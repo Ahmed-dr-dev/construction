@@ -1,32 +1,35 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
-    if (authError || !user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
       );
     }
 
-    const { data: profile, error: profileError } = await supabase
+    const supabase = await createClient();
+
+    const { data: user, error } = await supabase
       .from('users')
-      .select('*')
-      .eq('id', user.id)
+      .select('id, email, full_name, role')
+      .eq('id', userId)
       .single();
 
-    if (profileError) {
+    if (error || !user) {
       return NextResponse.json(
-        { error: 'Erreur lors de la récupération du profil' },
-        { status: 500 }
+        { error: 'Utilisateur non trouvé' },
+        { status: 401 }
       );
     }
 
-    return NextResponse.json({ user: profile });
+    return NextResponse.json({ user });
   } catch (error) {
     return NextResponse.json(
       { error: 'Erreur serveur' },

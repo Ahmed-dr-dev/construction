@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
@@ -14,22 +15,44 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    if (error) {
+    if (error || !user || !user.password_hash) {
       return NextResponse.json(
-        { error: error.message },
+        { error: 'Email ou mot de passe incorrect' },
         { status: 401 }
       );
     }
 
-    return NextResponse.json({
-      user: data.user,
-      session: data.session,
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+
+    if (!isValidPassword) {
+      return NextResponse.json(
+        { error: 'Email ou mot de passe incorrect' },
+        { status: 401 }
+      );
+    }
+
+    const response = NextResponse.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+      },
     });
+
+    response.cookies.set('user_id', user.id, {
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: 'Erreur lors de la connexion' },

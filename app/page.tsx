@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package2, ShoppingCart, BarChart3, Users, ArrowRight } from "lucide-react";
+import { Package2, ShoppingCart, BarChart3, Users, ArrowRight, Search } from "lucide-react";
 
 export default function Home() {
   return (
@@ -27,13 +27,17 @@ export default function Home() {
             Solution simple et efficace pour gérer vos ventes, votre stock et vos clients.
             Remplacez vos cahiers par un système numérique moderne.
           </p>
-          <div className="flex items-center justify-center space-x-4">
-            <Link href="/dashboard" className="btn btn-primary text-lg px-8 py-3 flex items-center space-x-2">
-              <span>Accéder au Dashboard</span>
-              <ArrowRight className="w-5 h-5" />
+          <div className="flex items-center justify-center space-x-4 flex-wrap gap-4">
+            <Link href="/catalog" className="btn btn-primary text-lg px-8 py-3 flex items-center space-x-2">
+              <ShoppingCart className="w-5 h-5" />
+              <span>Parcourir le catalogue</span>
             </Link>
-            <Link href="/signup" className="btn btn-secondary text-lg px-8 py-3">
-              Créer un compte
+            <Link href="/track-order" className="btn btn-secondary text-lg px-8 py-3 flex items-center space-x-2">
+              <Search className="w-5 h-5" />
+              <span>Suivre ma commande</span>
+            </Link>
+            <Link href="/signin" className="btn btn-secondary text-lg px-8 py-3">
+              Se connecter
             </Link>
           </div>
         </div>
@@ -80,14 +84,25 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="card bg-gradient-to-r from-primary-600 to-primary-700 text-white text-center py-12">
-          <h2 className="text-3xl font-bold mb-4">Prêt à moderniser votre gestion?</h2>
-          <p className="text-primary-100 mb-6 text-lg">
-            Commencez dès maintenant et simplifiez la gestion de votre magasin
-          </p>
-          <Link href="/signup" className="inline-block bg-white text-primary-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
-            Créer un compte gratuitement
-          </Link>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="card bg-gradient-to-r from-primary-600 to-primary-700 text-white text-center py-8">
+            <h2 className="text-2xl font-bold mb-4">Catalogue Produits</h2>
+            <p className="text-primary-100 mb-6">
+              Parcourez notre catalogue complet et passez commande en ligne
+            </p>
+            <Link href="/catalog" className="inline-block bg-white text-primary-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">
+              Voir le catalogue
+            </Link>
+          </div>
+          <div className="card bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center py-8">
+            <h2 className="text-2xl font-bold mb-4">Suivre ma commande</h2>
+            <p className="text-blue-100 mb-6">
+              Consultez l'état de votre commande en temps réel avec votre email ou numéro de commande
+            </p>
+            <Link href="/track-order" className="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">
+              Suivre ma commande
+            </Link>
+          </div>
         </div>
       </div>
 

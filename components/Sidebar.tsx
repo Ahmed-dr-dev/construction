@@ -11,6 +11,7 @@ import {
   FileText,
   LogOut,
   Package2,
+  ShoppingBag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -26,6 +27,7 @@ export default function Sidebar({ userRole = "admin" }: SidebarProps) {
     { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, roles: ["admin", "employee"] },
     { href: "/dashboard/products", label: "Produits", icon: Package, roles: ["admin", "employee"] },
     { href: "/dashboard/sales", label: "Ventes", icon: ShoppingCart, roles: ["admin", "employee"] },
+    { href: "/dashboard/supplier-orders", label: "Commandes Fournisseurs", icon: ShoppingBag, roles: ["admin", "employee"] },
     { href: "/dashboard/clients", label: "Clients", icon: Users, roles: ["admin"] },
     { href: "/dashboard/suppliers", label: "Fournisseurs", icon: Truck, roles: ["admin"] },
     { href: "/dashboard/invoices", label: "Factures", icon: FileText, roles: ["admin", "employee"] },

@@ -1,12 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
@@ -37,22 +39,23 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('user_id')?.value;
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
       );
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('users')
       .select('role')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
-    if (profile?.role !== 'admin') {
+    if (profileError ) {
       return NextResponse.json(
         { error: 'Accès refusé' },
         { status: 403 }

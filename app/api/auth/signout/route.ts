@@ -1,12 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST() {
   try {
-    const supabase = await createClient();
-    await supabase.auth.signOut();
-
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    response.cookies.delete('user_id');
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: 'Erreur lors de la déconnexion' },

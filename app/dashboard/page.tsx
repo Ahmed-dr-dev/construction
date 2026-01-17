@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   DollarSign,
   Package,
@@ -8,6 +8,11 @@ import {
   Users,
   AlertTriangle,
   TrendingUp,
+  RefreshCw,
+  Truck,
+  FileText,
+  CreditCard,
+  TrendingDown,
 } from "lucide-react";
 import StatCard from "@/components/StatCard";
 
@@ -17,28 +22,76 @@ export default function Dashboard() {
     totalProducts: 0,
     todaySales: 0,
     totalClients: 0,
+    totalSuppliers: 0,
+    thisMonthSales: 0,
+    lastMonthSales: 0,
+    monthlyChange: 0,
+    unpaidSales: 0,
+    totalDebt: 0,
+    avgSale: 0,
+    pendingOrders: 0,
+    totalSalesCount: 0,
   });
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
   const [recentSales, setRecentSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    
     try {
-      const res = await fetch("/api/dashboard/stats");
+      const res = await fetch("/api/dashboard/stats", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setStats(data.stats);
         setLowStockProducts(data.lowStockProducts || []);
         setRecentSales(data.recentSales || []);
+        setLastUpdate(new Date());
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchStats(true);
+    }, 30000);
+
+    // Refresh on window focus
+    const handleFocus = () => {
+      fetchStats(true);
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [fetchStats]);
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return dateString;
     }
   };
 
@@ -48,30 +101,31 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+     
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Ventes totales"
-          value={`${stats.totalSales.toLocaleString()} DH`}
-          icon={DollarSign}
-          color="green"
-        />
-        <StatCard
-          title="Produits"
-          value={stats.totalProducts.toString()}
-          icon={Package}
-          color="blue"
-        />
-        <StatCard
           title="Ventes aujourd'hui"
-          value={`${stats.todaySales.toLocaleString()} DH`}
+          value={`${stats.todaySales.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`}
           icon={ShoppingCart}
           color="orange"
         />
         <StatCard
-          title="Clients"
-          value={stats.totalClients.toString()}
-          icon={Users}
-          color="blue"
+          title="Ventes ce mois"
+          value={`${stats.thisMonthSales.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`}
+          icon={DollarSign}
+          color="green"
+        />
+        <StatCard
+          title="Total impayés"
+          value={`${stats.unpaidSales.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`}
+          icon={CreditCard}
+          color="red"
+        />
+        <StatCard
+          title="Commandes en attente"
+          value={stats.pendingOrders.toString()}
+          icon={FileText}
+          color="orange"
         />
       </div>
 
@@ -127,20 +181,22 @@ export default function Dashboard() {
                     <p className="font-medium text-gray-900">
                       {sale.client?.name || "Client inconnu"}
                     </p>
-                    <p className="text-sm text-gray-600">{sale.date}</p>
+                    <p className="text-sm text-gray-600">{formatDate(sale.date)}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-gray-900">
-                      {sale.total_amount?.toLocaleString()} DH
+                      {sale.total_amount?.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT
                     </p>
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
-                        sale.status === "paid"
+                        sale.status === "Payé" || sale.status === "paid"
                           ? "bg-green-100 text-green-700"
+                          : sale.status === "En attente"
+                          ? "bg-yellow-100 text-yellow-700"
                           : "bg-orange-100 text-orange-700"
                       }`}
                     >
-                      {sale.status === "paid" ? "Payé" : "Non payé"}
+                      {sale.status === "Payé" || sale.status === "paid" ? "Payé" : sale.status || "Non payé"}
                     </span>
                   </div>
                 </div>

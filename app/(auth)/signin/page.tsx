@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -10,15 +10,46 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push("/dashboard");
+    }
+  }, [user, authLoading, router]);
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // Email validation
+    if (!email.trim()) {
+      newErrors.email = "L'email est requis";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Format d'email invalide";
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "Le mot de passe est requis";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
-    const result = await signIn(email, password);
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    const result = await signIn(email.trim(), password);
     
     if (result.success) {
       router.push("/dashboard");
@@ -27,6 +58,14 @@ export default function SignIn() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="card">
+        <div className="text-center text-gray-600">Chargement...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="card">
@@ -47,11 +86,17 @@ export default function SignIn() {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input"
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors({ ...errors, email: "" });
+            }}
+            className={`input ${errors.email ? "border-red-500" : ""}`}
             required
             placeholder="votre@email.com"
           />
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
         </div>
 
         <div>
@@ -62,11 +107,17 @@ export default function SignIn() {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="input"
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (errors.password) setErrors({ ...errors, password: "" });
+            }}
+            className={`input ${errors.password ? "border-red-500" : ""}`}
             required
             placeholder="••••••••"
           />
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+          )}
         </div>
 
         <button
@@ -78,12 +129,13 @@ export default function SignIn() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-600 mt-4">
-        Pas de compte?{" "}
-        <Link href="/signup" className="text-primary-600 hover:underline font-medium">
-          S'inscrire
-        </Link>
-      </p>
+      <div className="text-center mt-4 space-y-2">
+        <p className="text-sm text-gray-600">
+          <Link href="/forgot-password" className="text-primary-600 hover:underline font-medium">
+            Mot de passe oublié ?
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
