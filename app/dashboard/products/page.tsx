@@ -11,6 +11,7 @@ interface Product {
   stock: number;
   min_stock: number;
   unit: string;
+  purchase_price?: number | null;
 }
 
 const PRODUCT_CATEGORIES = [
@@ -44,6 +45,7 @@ export default function ProductsPage() {
     stock: "",
     min_stock: "",
     unit: "",
+    purchase_price: "",
   });
 
   const [errors, setErrors] = useState({
@@ -53,6 +55,7 @@ export default function ProductsPage() {
     stock: "",
     min_stock: "",
     unit: "",
+    purchase_price: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -83,6 +86,7 @@ export default function ProductsPage() {
       stock: "",
       min_stock: "",
       unit: "",
+      purchase_price: "",
     };
 
     // Name validation
@@ -162,8 +166,8 @@ export default function ProductsPage() {
           await fetchProducts();
           setShowModal(false);
           setEditingProduct(null);
-          setFormData({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "" });
-          setErrors({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "" });
+          setFormData({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "", purchase_price: "" });
+          setErrors({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "", purchase_price: "" });
         } else {
           const data = await res.json();
           alert(data.error || "Erreur lors de la mise à jour du produit");
@@ -177,8 +181,8 @@ export default function ProductsPage() {
         if (res.ok) {
           await fetchProducts();
           setShowModal(false);
-          setFormData({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "" });
-          setErrors({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "" });
+          setFormData({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "", purchase_price: "" });
+          setErrors({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "", purchase_price: "" });
         } else {
           const data = await res.json();
           alert(data.error || "Erreur lors de l'ajout du produit");
@@ -201,8 +205,9 @@ export default function ProductsPage() {
       stock: product.stock.toString(),
       min_stock: product.min_stock.toString(),
       unit: product.unit,
+      purchase_price: product.purchase_price != null ? product.purchase_price.toString() : "",
     });
-    setErrors({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "" });
+    setErrors({ name: "", category: "", price: "", stock: "", min_stock: "", unit: "", purchase_price: "" });
     setShowModal(true);
   };
 
@@ -296,13 +301,17 @@ export default function ProductsPage() {
                     {product.stock} {product.unit}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    {product.stock <= product.min_stock ? (
-                      <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                        Stock bas
+                    {product.stock === 0 ? (
+                      <span className="px-3 py-1 bg-red-200 text-red-800 text-xs font-medium rounded-full">
+                        Rupture
+                      </span>
+                    ) : product.stock <= product.min_stock ? (
+                      <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
+                        Stock faible
                       </span>
                     ) : (
                       <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                        En stock
+                        Disponible
                       </span>
                     )}
                   </td>
@@ -380,7 +389,7 @@ export default function ProductsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="label">Prix (DT)</label>
+                  <label className="label">Prix de vente (DT)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -397,6 +406,24 @@ export default function ProductsPage() {
                   />
                   {errors.price && (
                     <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="label">Prix d&apos;achat (DT) – optionnel</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.purchase_price}
+                    onChange={(e) => {
+                      setFormData({ ...formData, purchase_price: e.target.value });
+                      if (errors.purchase_price) setErrors({ ...errors, purchase_price: "" });
+                    }}
+                    className={`input ${errors.purchase_price ? "border-red-500" : ""}`}
+                    placeholder="Coût pour la rentabilité"
+                  />
+                  {errors.purchase_price && (
+                    <p className="text-red-500 text-sm mt-1">{errors.purchase_price}</p>
                   )}
                 </div>
                 <div>

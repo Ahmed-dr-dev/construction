@@ -1,72 +1,28 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
+    const cookieStore = await cookies();
+    const clientId = cookieStore.get('client_id')?.value;
 
-    const body = await request.json();
-    const { client_name, client_email, client_phone, client_address, items, notes } = body;
-
-    if (!client_name || !client_email || !client_phone || !items || items.length === 0) {
+    if (!clientId) {
       return NextResponse.json(
-        { error: 'Nom, email, téléphone et articles sont requis' },
-        { status: 400 }
+        { error: 'Vous devez être connecté pour passer une commande.' },
+        { status: 401 }
       );
     }
 
-    // Check or create client
-    let clientId: string;
-    
-    // Try to find existing client by email or phone
-    const { data: existingClient } = await supabase
-      .from('clients')
-      .select('id, name')
-      .or(`email.eq.${client_email},phone.eq.${client_phone}`)
-      .maybeSingle();
+    const body = await request.json();
+    const { items, notes } = body;
 
-    if (existingClient) {
-      clientId = existingClient.id;
-      
-      // Update client info (keep "Visiteur en ligne" tag if exists)
-      const updatedName = existingClient.name.includes('Visiteur en ligne')
-        ? existingClient.name
-        : `${client_name} (Visiteur en ligne)`;
-      
-      await supabase
-        .from('clients')
-        .update({
-          name: updatedName,
-          phone: client_phone,
-          address: client_address || null,
-          email: client_email,
-        })
-        .eq('id', clientId);
-    } else {
-      // Create new client as "Visiteur en ligne" (Online Visitor)
-      const visitorName = client_name.includes('Visiteur en ligne') 
-        ? client_name 
-        : `${client_name} (Visiteur en ligne)`;
-      
-      const { data: newClient, error: clientError } = await supabase
-        .from('clients')
-        .insert({
-          name: visitorName,
-          email: client_email,
-          phone: client_phone,
-          address: client_address || null,
-        })
-        .select()
-        .single();
-
-      if (clientError || !newClient) {
-        return NextResponse.json(
-          { error: 'Erreur lors de la création du client' },
-          { status: 500 }
-        );
-      }
-
-      clientId = newClient.id;
+    if (!items || items.length === 0) {
+      return NextResponse.json(
+        { error: 'Les articles sont requis pour créer une commande' },
+        { status: 400 }
+      );
     }
 
     // Calculate total amount
@@ -80,7 +36,7 @@ export async function POST(request: Request) {
       .from('sales')
       .insert({
         client_id: clientId,
-        user_id: null, // Public order - no user
+        user_id: null,
         date: new Date().toISOString().split('T')[0],
         total_amount: totalAmount,
         status: 'unpaid',
@@ -89,8 +45,9 @@ export async function POST(request: Request) {
       .single();
 
     if (saleError || !sale) {
+      console.error('Erreur insertion vente:', saleError);
       return NextResponse.json(
-        { error: 'Erreur lors de la création de la commande' },
+        { error: saleError?.message || 'Erreur lors de la création de la commande' },
         { status: 500 }
       );
     }
@@ -108,10 +65,11 @@ export async function POST(request: Request) {
       .insert(saleItems);
 
     if (itemsError) {
+      console.error("Erreur lors de l'ajout des articles:", itemsError);
       // Rollback sale if items insertion fails
       await supabase.from('sales').delete().eq('id', sale.id);
       return NextResponse.json(
-        { error: 'Erreur lors de l\'ajout des articles' },
+        { error: itemsError.message || "Erreur lors de l'ajout des articles" },
         { status: 500 }
       );
     }

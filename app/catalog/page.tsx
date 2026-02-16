@@ -138,11 +138,8 @@ export default function CatalogPage() {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/track-order" className="text-gray-600 hover:text-gray-900">
-                Suivre ma commande
-              </Link>
-              <Link href="/signin" className="text-gray-600 hover:text-gray-900">
-                Se connecter
+              <Link href="/client/signin" className="text-gray-600 hover:text-gray-900">
+                Espace client
               </Link>
               <button
                 onClick={() => setShowCart(true)}

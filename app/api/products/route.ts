@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, category, price, stock, min_stock, unit } = body;
+    const { name, category, price, stock, min_stock, unit, purchase_price } = body;
 
     if (!name || !category || price === undefined || stock === undefined || min_stock === undefined || !unit) {
       return NextResponse.json(
@@ -72,16 +72,21 @@ export async function POST(request: Request) {
       );
     }
 
+    const insertPayload: Record<string, unknown> = {
+      name,
+      category,
+      price: parseFloat(price),
+      stock: parseInt(stock),
+      min_stock: parseInt(min_stock),
+      unit,
+    };
+    if (purchase_price !== undefined && purchase_price !== "" && purchase_price !== null) {
+      const v = parseFloat(purchase_price);
+      if (!isNaN(v) && v >= 0) insertPayload.purchase_price = v;
+    }
     const { data, error } = await supabase
       .from('products')
-      .insert({
-        name,
-        category,
-        price: parseFloat(price),
-        stock: parseInt(stock),
-        min_stock: parseInt(min_stock),
-        unit,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Package2, ArrowLeft, CheckCircle2, X, Copy, Check } from "lucide-react";
+import { useClientAuth } from "@/lib/hooks/useClientAuth";
 
 interface CartItem {
   product_id: string;
@@ -15,6 +16,7 @@ interface CartItem {
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { client, loading: clientLoading } = useClientAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -23,16 +25,18 @@ export default function CheckoutPage() {
   const [copied, setCopied] = useState(false);
   
   const [formData, setFormData] = useState({
-    client_name: "",
-    client_email: "",
-    client_phone: "",
-    client_address: "",
     notes: "",
   });
 
   useEffect(() => {
     loadCartFromStorage();
   }, []);
+
+  useEffect(() => {
+    if (!clientLoading && !client) {
+      router.push("/signin");
+    }
+  }, [client, clientLoading, router]);
 
   const loadCartFromStorage = () => {
     if (typeof window !== "undefined") {
@@ -53,39 +57,6 @@ export default function CheckoutPage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-
-    // Name validation
-    if (!formData.client_name.trim()) {
-      newErrors.client_name = "Le nom est requis";
-    } else if (formData.client_name.trim().length < 2) {
-      newErrors.client_name = "Le nom doit contenir au moins 2 caractères";
-    } else if (formData.client_name.trim().length > 100) {
-      newErrors.client_name = "Le nom ne peut pas dépasser 100 caractères";
-    }
-
-    // Email validation
-    if (!formData.client_email.trim()) {
-      newErrors.client_email = "L'email est requis";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.client_email)) {
-      newErrors.client_email = "Format d'email invalide";
-    } else if (formData.client_email.length > 255) {
-      newErrors.client_email = "L'email ne peut pas dépasser 255 caractères";
-    }
-
-    // Phone validation
-    if (!formData.client_phone.trim()) {
-      newErrors.client_phone = "Le téléphone est requis";
-    } else {
-      const phoneClean = formData.client_phone.replace(/\s/g, "");
-      if (!/^[\+]?[0-9]{8,15}$/.test(phoneClean)) {
-        newErrors.client_phone = "Numéro de téléphone invalide (8-15 chiffres)";
-      }
-    }
-
-    // Address validation (optional but if provided, check length)
-    if (formData.client_address && formData.client_address.trim().length > 500) {
-      newErrors.client_address = "L'adresse ne peut pas dépasser 500 caractères";
-    }
 
     // Notes validation (optional but if provided, check length)
     if (formData.notes && formData.notes.trim().length > 1000) {
@@ -110,10 +81,6 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          client_name: formData.client_name.trim(),
-          client_email: formData.client_email.trim(),
-          client_phone: formData.client_phone.trim(),
-          client_address: formData.client_address.trim() || null,
           notes: formData.notes.trim() || null,
           items: cart.map((item) => ({
             product_id: item.product_id,
@@ -167,9 +134,6 @@ export default function CheckoutPage() {
               <span className="text-xl font-bold text-gray-900">Gestion Construction</span>
             </Link>
             <div className="flex items-center space-x-4">
-              <Link href="/track-order" className="text-gray-600 hover:text-gray-900">
-                Suivre ma commande
-              </Link>
               <Link href="/signin" className="text-gray-600 hover:text-gray-900">
                 Se connecter
               </Link>
@@ -198,73 +162,6 @@ export default function CheckoutPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom complet <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.client_name}
-                    onChange={(e) => updateField("client_name", e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                      errors.client_name ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Votre nom complet"
-                  />
-                  {errors.client_name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.client_name}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.client_email}
-                    onChange={(e) => updateField("client_email", e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                      errors.client_email ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="votre@email.com"
-                  />
-                  {errors.client_email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.client_email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Téléphone <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.client_phone}
-                    onChange={(e) => updateField("client_phone", e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                      errors.client_phone ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="+212 6XX XXX XXX"
-                  />
-                  {errors.client_phone && (
-                    <p className="mt-1 text-sm text-red-600">{errors.client_phone}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Adresse de livraison
-                  </label>
-                  <textarea
-                    value={formData.client_address}
-                    onChange={(e) => updateField("client_address", e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Votre adresse complète"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Notes (optionnel)
                   </label>
                   <textarea
@@ -274,6 +171,9 @@ export default function CheckoutPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Instructions spéciales, remarques..."
                   />
+                  {errors.notes && (
+                    <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
+                  )}
                 </div>
 
                 <button
@@ -371,26 +271,28 @@ export default function CheckoutPage() {
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-blue-800">
-                <strong>Important :</strong> Gardez ce numéro de commande pour suivre votre commande. Vous pouvez utiliser ce numéro ou votre email pour consulter l'état de votre commande.
+                <strong>Important :</strong> Gardez ce numéro de commande pour toute référence future en magasin ou auprès de notre équipe.
               </p>
             </div>
 
             <div className="flex flex-col gap-3">
-              <Link
-                href={`/track-order?orderId=${orderData.order.id}`}
-                className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-center"
-                onClick={() => setShowOrderSuccessModal(false)}
-              >
-                Suivre ma commande maintenant
-              </Link>
               <button
                 onClick={() => {
                   setShowOrderSuccessModal(false);
-                  router.push(`/order-confirmation?orderId=${orderData.order.id}&invoiceNumber=${orderData.invoice_number}`);
+                  router.push("/client/dashboard");
+                }}
+                className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+              >
+                Voir mes commandes
+              </button>
+              <button
+                onClick={() => {
+                  setShowOrderSuccessModal(false);
+                  router.push("/catalog");
                 }}
                 className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
               >
-                Voir la confirmation
+                Retour au catalogue
               </button>
             </div>
           </div>

@@ -12,6 +12,9 @@ import {
   LogOut,
   Package2,
   ShoppingBag,
+  TrendingUp,
+  ClipboardList,
+  MessageCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -31,6 +34,9 @@ export default function Sidebar({ userRole = "admin" }: SidebarProps) {
     { href: "/dashboard/clients", label: "Clients", icon: Users, roles: ["admin"] },
     { href: "/dashboard/suppliers", label: "Fournisseurs", icon: Truck, roles: ["admin"] },
     { href: "/dashboard/invoices", label: "Factures", icon: FileText, roles: ["admin", "employee"] },
+    { href: "/dashboard/profitability", label: "Rentabilité", icon: TrendingUp, roles: ["admin", "employee"] },
+    { href: "/dashboard/recommendations", label: "Recommandations", icon: ClipboardList, roles: ["admin", "employee"] },
+    { href: "/dashboard/assistant", label: "Assistant", icon: MessageCircle, roles: ["admin", "employee"] },
   ];
 
   const handleSignOut = async () => {

@@ -70,19 +70,27 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, category, price, stock, min_stock, unit } = body;
+    const { name, category, price, stock, min_stock, unit, purchase_price } = body;
 
+    const updatePayload: Record<string, unknown> = {
+      name,
+      category,
+      price: price !== undefined ? parseFloat(price) : undefined,
+      stock: stock !== undefined ? parseInt(stock) : undefined,
+      min_stock: min_stock !== undefined ? parseInt(min_stock) : undefined,
+      unit,
+      updated_at: new Date().toISOString(),
+    };
+    if (purchase_price !== undefined) {
+      if (purchase_price === "" || purchase_price === null) updatePayload.purchase_price = null;
+      else {
+        const v = parseFloat(purchase_price);
+        if (!isNaN(v) && v >= 0) updatePayload.purchase_price = v;
+      }
+    }
     const { data, error } = await supabase
       .from('products')
-      .update({
-        name,
-        category,
-        price: price !== undefined ? parseFloat(price) : undefined,
-        stock: stock !== undefined ? parseInt(stock) : undefined,
-        min_stock: min_stock !== undefined ? parseInt(min_stock) : undefined,
-        unit,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', params.id)
       .select()
       .single();

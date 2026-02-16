@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package2, ShoppingCart, BarChart3, Users, ArrowRight, Search } from "lucide-react";
+import { Package2, ShoppingCart, Search } from "lucide-react";
 
 export default function Home() {
   return (
@@ -32,55 +32,9 @@ export default function Home() {
               <ShoppingCart className="w-5 h-5" />
               <span>Parcourir le catalogue</span>
             </Link>
-            <Link href="/track-order" className="btn btn-secondary text-lg px-8 py-3 flex items-center space-x-2">
-              <Search className="w-5 h-5" />
-              <span>Suivre ma commande</span>
-            </Link>
             <Link href="/signin" className="btn btn-secondary text-lg px-8 py-3">
               Se connecter
             </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
-          <div className="card text-center hover:shadow-lg transition-shadow">
-            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Package2 className="w-8 h-8 text-blue-600" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Gestion des Produits</h3>
-            <p className="text-gray-600 text-sm">
-              Ajoutez et gérez vos produits avec alertes de stock bas
-            </p>
-          </div>
-
-          <div className="card text-center hover:shadow-lg transition-shadow">
-            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ShoppingCart className="w-8 h-8 text-green-600" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Enregistrement des Ventes</h3>
-            <p className="text-gray-600 text-sm">
-              Enregistrez vos ventes rapidement avec calcul automatique
-            </p>
-          </div>
-
-          <div className="card text-center hover:shadow-lg transition-shadow">
-            <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-orange-600" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Gestion des Clients</h3>
-            <p className="text-gray-600 text-sm">
-              Suivez vos clients et leurs historiques d'achats
-            </p>
-          </div>
-
-          <div className="card text-center hover:shadow-lg transition-shadow">
-            <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BarChart3 className="w-8 h-8 text-purple-600" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Statistiques</h3>
-            <p className="text-gray-600 text-sm">
-              Visualisez vos performances avec un tableau de bord clair
-            </p>
           </div>
         </div>
 
@@ -95,12 +49,12 @@ export default function Home() {
             </Link>
           </div>
           <div className="card bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center py-8">
-            <h2 className="text-2xl font-bold mb-4">Suivre ma commande</h2>
+            <h2 className="text-2xl font-bold mb-4">Espace de connexion</h2>
             <p className="text-blue-100 mb-6">
-              Consultez l'état de votre commande en temps réel avec votre email ou numéro de commande
+              Accédez à l&apos;espace gestion ou à l&apos;espace client depuis une seule page de connexion.
             </p>
-            <Link href="/track-order" className="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">
-              Suivre ma commande
+            <Link href="/signin" className="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">
+              Accéder à l&apos;espace de connexion
             </Link>
           </div>
         </div>
