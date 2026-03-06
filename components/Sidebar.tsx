@@ -15,6 +15,12 @@ import {
   TrendingUp,
   ClipboardList,
   MessageCircle,
+  Receipt,
+  CreditCard,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  BarChart3,
+  UserPlus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -26,18 +32,30 @@ export default function Sidebar({ userRole = "admin" }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const menuItems = [
+  const comptableMenuItems = [
+    { href: "/dashboard/comptable", label: "Tableau de bord comptable", icon: LayoutDashboard },
+    { href: "/dashboard/comptable/transactions", label: "Transactions financières", icon: Receipt },
+    { href: "/dashboard/comptable/invoices", label: "Factures (clients & fournisseurs)", icon: FileText },
+    { href: "/dashboard/comptable/payments", label: "Paiements & encaissements", icon: CreditCard },
+    { href: "/dashboard/comptable/expenses-revenue", label: "Dépenses & recettes", icon: BarChart3 },
+    { href: "/dashboard/comptable/reports", label: "Rapports financiers", icon: BarChart3 },
+  ];
+
+  const gestionMenuItems = [
     { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, roles: ["admin", "employee"] },
     { href: "/dashboard/products", label: "Produits", icon: Package, roles: ["admin", "employee"] },
     { href: "/dashboard/sales", label: "Ventes", icon: ShoppingCart, roles: ["admin", "employee"] },
     { href: "/dashboard/supplier-orders", label: "Commandes Fournisseurs", icon: ShoppingBag, roles: ["admin", "employee"] },
     { href: "/dashboard/clients", label: "Clients", icon: Users, roles: ["admin"] },
     { href: "/dashboard/suppliers", label: "Fournisseurs", icon: Truck, roles: ["admin"] },
+    { href: "/dashboard/comptable-accounts", label: "Comptables", icon: UserPlus, roles: ["admin"] },
     { href: "/dashboard/invoices", label: "Factures", icon: FileText, roles: ["admin", "employee"] },
     { href: "/dashboard/profitability", label: "Rentabilité", icon: TrendingUp, roles: ["admin", "employee"] },
     { href: "/dashboard/recommendations", label: "Recommandations", icon: ClipboardList, roles: ["admin", "employee"] },
     { href: "/dashboard/assistant", label: "Assistant", icon: MessageCircle, roles: ["admin", "employee"] },
   ];
+
+  const isComptable = userRole === "comptable";
 
   const handleSignOut = async () => {
     await fetch("/api/auth/signout", { method: "POST" });
@@ -59,27 +77,40 @@ export default function Sidebar({ userRole = "admin" }: SidebarProps) {
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
-        {menuItems.map((item) => {
-          if (!item.roles.includes(userRole || "employee")) return null;
-          
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? "bg-primary-50 text-primary-600 font-medium"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+        {isComptable
+          ? comptableMenuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive ? "bg-primary-50 text-primary-600 font-medium" : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })
+          : gestionMenuItems.map((item) => {
+              if (!item.roles.includes(userRole || "employee")) return null;
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive ? "bg-primary-50 text-primary-600 font-medium" : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
       </nav>
 
       <div className="p-4 border-t border-gray-200">

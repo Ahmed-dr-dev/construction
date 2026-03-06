@@ -7,7 +7,7 @@ interface User {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'employee';
+  role: 'admin' | 'employee' | 'comptable';
 }
 
 export function useAuth() {
@@ -52,7 +52,7 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'employee') => {
+  const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'employee' | 'comptable') => {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

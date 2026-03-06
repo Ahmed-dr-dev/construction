@@ -23,16 +23,27 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const path = window.location.pathname;
+    if (user?.role === "comptable" && path === "/dashboard") {
+      router.replace("/dashboard/comptable");
+      return;
+    }
     const titles: Record<string, string> = {
       "/dashboard": "Tableau de bord",
+      "/dashboard/comptable": "Tableau de bord comptable",
+      "/dashboard/comptable/transactions": "Transactions financières",
+      "/dashboard/comptable/invoices": "Factures",
+      "/dashboard/comptable/payments": "Paiements & encaissements",
+      "/dashboard/comptable/expenses-revenue": "Dépenses & recettes",
+      "/dashboard/comptable/reports": "Rapports financiers",
       "/dashboard/products": "Produits",
       "/dashboard/sales": "Ventes",
       "/dashboard/clients": "Clients",
       "/dashboard/suppliers": "Fournisseurs",
+      "/dashboard/comptable-accounts": "Comptables",
       "/dashboard/invoices": "Factures",
     };
     setPageTitle(titles[path] || "Tableau de bord");
-  }, []);
+  }, [user?.role]);
 
   if (loading) {
     return (

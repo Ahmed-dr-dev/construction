@@ -29,7 +29,6 @@ import {
   Pie,
   Cell,
 } from "recharts";
-
 const COLORS = ["#22c55e", "#f97316", "#ef4444"]; // Disponible, Stock faible, Rupture
 
 export default function Dashboard() {
