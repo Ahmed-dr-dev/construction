@@ -116,6 +116,64 @@ export default function Dashboard() {
   }
 
   const kpis = analytics?.kpis;
+  const formatMoney = (value: number) =>
+    `${value.toLocaleString("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} DT`;
+
+  const kpiCards = [
+    {
+      title: "Chiffre d'affaires total",
+      value: formatMoney(kpis?.chiffreAffaires ?? stats.totalSales),
+      icon: DollarSign,
+      color: "green" as const,
+      badge: "Global",
+      description: "Vue consolidée des ventes enregistrées depuis le lancement.",
+      size: "featured" as const,
+      className: "md:col-span-2 xl:col-span-2",
+    },
+    {
+      title: "Ventes aujourd'hui",
+      value: formatMoney(stats.todaySales),
+      icon: TrendingUp,
+      color: "blue" as const,
+      badge: "Temps réel",
+      description: "Performance de la journée en cours.",
+    },
+    {
+      title: "Nombre de ventes",
+      value: kpis?.nombreVentes ?? stats.totalSalesCount,
+      icon: ShoppingCart,
+      color: "orange" as const,
+      badge: "Transactions",
+      description: "Nombre total de commandes clients finalisées.",
+    },
+    {
+      title: "Clients actifs (ce mois)",
+      value: kpis?.clientsActifsCeMois ?? 0,
+      icon: Users,
+      color: "blue" as const,
+      badge: "Mensuel",
+      description: "Clients ayant commandé au moins une fois ce mois-ci.",
+    },
+    {
+      title: "Total impayés",
+      value: formatMoney(stats.unpaidSales),
+      icon: CreditCard,
+      color: "red" as const,
+      badge: "À surveiller",
+      description: "Montant restant à encaisser sur les ventes non réglées.",
+    },
+    {
+      title: "Commandes en attente",
+      value: stats.pendingOrders,
+      icon: FileText,
+      color: "orange" as const,
+      badge: "Workflow",
+      description: "Commandes nécessitant encore une validation ou un suivi.",
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -133,43 +191,10 @@ export default function Dashboard() {
       </div>
 
       {/* KPI en temps réel */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Chiffre d'affaires total"
-          value={`${(kpis?.chiffreAffaires ?? stats.totalSales).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`}
-          icon={DollarSign}
-          color="green"
-        />
-        <StatCard
-          title="Nombre de ventes"
-          value={kpis?.nombreVentes ?? stats.totalSalesCount}
-          icon={ShoppingCart}
-          color="orange"
-        />
-        <StatCard
-          title="Clients actifs (ce mois)"
-          value={kpis?.clientsActifsCeMois ?? 0}
-          icon={Users}
-          color="blue"
-        />
-        <StatCard
-          title="Ventes aujourd'hui"
-          value={`${stats.todaySales.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`}
-          icon={TrendingUp}
-          color="green"
-        />
-        <StatCard
-          title="Total impayés"
-          value={`${stats.unpaidSales.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`}
-          icon={CreditCard}
-          color="red"
-        />
-        <StatCard
-          title="Commandes en attente"
-          value={stats.pendingOrders}
-          icon={FileText}
-          color="orange"
-        />
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {kpiCards.map((card) => (
+          <StatCard key={card.title} {...card} />
+        ))}
       </div>
 
       {/* Graphiques */}

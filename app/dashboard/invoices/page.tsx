@@ -450,6 +450,23 @@ export default function InvoicesPage() {
     }
   };
 
+  const formatCurrency = (amount: number) =>
+    amount.toLocaleString("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  const getClientInvoiceStatus = (invoice: ClientInvoice) => {
+    const isPaid = invoice.sale?.status === "paid";
+
+    return {
+      label: isPaid ? "Payée" : "En attente",
+      className: isPaid
+        ? "bg-green-100 text-green-700 border-green-200"
+        : "bg-orange-100 text-orange-700 border-orange-200",
+    };
+  };
+
   const filteredSupplierInvoices = supplierInvoices.filter(
     (inv) =>
       inv.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -462,177 +479,370 @@ export default function InvoicesPage() {
   }
 
   const currentInvoices = activeTab === "client" ? filteredClientInvoices : filteredSupplierInvoices;
+  const clientRevenue = clientInvoices.reduce(
+    (sum, invoice) => sum + (invoice.sale?.total_amount || 0),
+    0
+  );
+  const supplierSpend = supplierInvoices.reduce(
+    (sum, invoice) => sum + (invoice.supplier_order?.total_amount || 0),
+    0
+  );
+  const paidClientInvoices = clientInvoices.filter(
+    (invoice) => invoice.sale?.status === "paid"
+  ).length;
+  const supplierWithOrders = supplierInvoices.filter(
+    (invoice) => invoice.supplier_order?.order_number
+  ).length;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Factures</h1>
-          <p className="text-gray-600 mt-1">
-            {activeTab === "client" 
-              ? `${clientInvoices.length} factures clients` 
-              : `${supplierInvoices.length} factures fournisseurs`}
+      <div className="rounded-2xl bg-gradient-to-r from-primary-700 via-primary-600 to-blue-600 px-6 py-7 text-white shadow-sm">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-medium text-primary-100">Centre de facturation</p>
+            <h1 className="mt-2 text-3xl font-bold">Factures</h1>
+            <p className="mt-2 max-w-2xl text-sm text-primary-100">
+              Consultez les factures clients et fournisseurs, recherchez rapidement un document
+              et téléchargez une version PDF avec un rendu plus soigné.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <p className="text-xs uppercase tracking-wide text-primary-100">Clients</p>
+              <p className="mt-1 text-2xl font-bold">{clientInvoices.length}</p>
+            </div>
+            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <p className="text-xs uppercase tracking-wide text-primary-100">Payées</p>
+              <p className="mt-1 text-2xl font-bold">{paidClientInvoices}</p>
+            </div>
+            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <p className="text-xs uppercase tracking-wide text-primary-100">Fournisseurs</p>
+              <p className="mt-1 text-2xl font-bold">{supplierInvoices.length}</p>
+            </div>
+            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <p className="text-xs uppercase tracking-wide text-primary-100">Documents</p>
+              <p className="mt-1 text-2xl font-bold">{clientInvoices.length + supplierInvoices.length}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr,0.8fr,0.8fr]">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Montant facturé clients</p>
+              <p className="mt-2 text-3xl font-bold text-gray-900">
+                {formatCurrency(clientRevenue)} DT
+              </p>
+            </div>
+            <div className="rounded-xl bg-primary-50 p-3 text-primary-600">
+              <Users className="h-6 w-6" />
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-gray-500">
+            Basé sur l&apos;ensemble des factures clients émises.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Achats fournisseurs</p>
+              <p className="mt-2 text-3xl font-bold text-gray-900">
+                {formatCurrency(supplierSpend)} DT
+              </p>
+            </div>
+            <div className="rounded-xl bg-orange-50 p-3 text-orange-600">
+              <Truck className="h-6 w-6" />
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-gray-500">
+            Total des factures fournisseurs enregistrées.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">
+                {activeTab === "client" ? "Factures visibles" : "Commandes liées"}
+              </p>
+              <p className="mt-2 text-3xl font-bold text-gray-900">
+                {activeTab === "client" ? currentInvoices.length : supplierWithOrders}
+              </p>
+            </div>
+            <div className="rounded-xl bg-gray-100 p-3 text-gray-700">
+              <FileText className="h-6 w-6" />
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-gray-500">
+            {activeTab === "client"
+              ? "Résultat actuel après application de la recherche."
+              : "Factures fournisseurs associées à une commande."}
           </p>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-        <button
-          onClick={() => setActiveTab("client")}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-            activeTab === "client"
-              ? "bg-white text-primary-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          <span>Factures Clients</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("supplier")}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-            activeTab === "supplier"
-              ? "bg-white text-primary-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          <Truck className="w-4 h-4" />
-          <span>Factures Fournisseurs</span>
-        </button>
-      </div>
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2 rounded-2xl bg-gray-100 p-1">
+            <button
+              onClick={() => setActiveTab("client")}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "client"
+                  ? "bg-white text-primary-600 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              Factures Clients
+            </button>
+            <button
+              onClick={() => setActiveTab("supplier")}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "supplier"
+                  ? "bg-white text-primary-600 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Truck className="w-4 h-4" />
+              Factures Fournisseurs
+            </button>
+          </div>
 
-      <div className="card">
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <div className="relative w-full lg:max-w-md">
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder={activeTab === "client" ? "Rechercher une facture client..." : "Rechercher une facture fournisseur..."}
+              placeholder={
+                activeTab === "client"
+                  ? "Rechercher par client, email ou numéro de facture..."
+                  : "Rechercher par fournisseur, commande ou facture..."
+              }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input pl-10"
+              className="input h-11 rounded-xl pl-10"
             />
           </div>
         </div>
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">N° Facture</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                  {activeTab === "client" ? "Client" : "Fournisseur"}
-                </th>
-                {activeTab === "supplier" && (
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">N° Commande</th>
-                )}
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Date</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Montant</th>
-                {activeTab === "supplier" && (
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Payé</th>
-                )}
-                <th className="text-center py-3 px-4 font-semibold text-gray-700">Statut</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeTab === "client" ? (
-                filteredClientInvoices.map((invoice) => {
-                  const total = invoice.sale?.total_amount || 0;
-                  return (
-                    <tr key={invoice.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center space-x-2">
-                          <FileText className="w-4 h-4 text-primary-600" />
-                          <span className="font-medium text-gray-900">{invoice.invoice_number}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-900">{invoice.sale?.client?.name || "N/A"}</td>
-                      <td className="py-3 px-4 text-gray-600">
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(invoice.created_at)}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right font-bold text-gray-900">
-                        {total.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span
-                          className={`px-3 py-1 text-xs font-medium rounded-full ${
-                            invoice.sale?.status === "paid"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-orange-100 text-orange-700"
-                          }`}
-                        >
-                          {invoice.sale?.status === "paid" ? "Payé" : "Non payé"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center justify-end">
-                          <button
-                            onClick={() => generateClientInvoicePDF(invoice)}
-                            className="flex items-center space-x-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
-                          >
-                            <Download className="w-4 h-4" />
-                            <span>Télécharger</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                filteredSupplierInvoices.map((invoice) => (
-                  <tr key={invoice.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center space-x-2">
-                        <FileText className="w-4 h-4 text-orange-600" />
-                        <span className="font-medium text-gray-900">{invoice.invoice_number}</span>
+      <div className="space-y-4">
+        {activeTab === "client" ? (
+          filteredClientInvoices.map((invoice) => {
+            const total = invoice.sale?.total_amount || 0;
+            const status = getClientInvoiceStatus(invoice);
+
+            return (
+              <div
+                key={invoice.id}
+                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+              >
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+                        <FileText className="h-5 w-5" />
                       </div>
-                    </td>
-                    <td className="py-3 px-4 text-gray-900">{invoice.supplier_order?.supplier?.name || "N/A"}</td>
-                    <td className="py-3 px-4 text-gray-600">{invoice.supplier_order?.order_number || "N/A"}</td>
-                    <td className="py-3 px-4 text-gray-600">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(invoice.created_at)}</span>
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-gray-500">Facture</p>
+                        <h2 className="text-lg font-bold text-gray-900">{invoice.invoice_number}</h2>
                       </div>
-                    </td>
-                    <td className="py-3 px-4 text-right font-bold text-gray-900">
-                      {(invoice.supplier_order?.total_amount || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT
-                    </td>
-                    <td className="py-3 px-4 text-right text-gray-600">
-                      -
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
-                        -
+                      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}>
+                        {status.label}
                       </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center justify-end">
-                        <button
-                          onClick={() => generateSupplierInvoicePDF(invoice)}
-                          className="flex items-center space-x-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Télécharger</span>
-                        </button>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+                      <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                        <p className="text-xs uppercase tracking-wide text-gray-500">Client</p>
+                        <p className="mt-1 font-semibold text-gray-900">
+                          {invoice.sale?.client?.name || "N/A"}
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {invoice.sale?.client?.email || "Email non renseigné"}
+                        </p>
                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-          {currentInvoices.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              Aucune facture {activeTab === "client" ? "client" : "fournisseur"} trouvée
+                      <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                        <p className="text-xs uppercase tracking-wide text-gray-500">Date d&apos;émission</p>
+                        <p className="mt-1 flex items-center gap-2 font-medium text-gray-900">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          {formatDate(invoice.created_at)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                        <p className="text-xs uppercase tracking-wide text-gray-500">Montant</p>
+                        <p className="mt-1 text-xl font-bold text-gray-900">
+                          {formatCurrency(total)} DT
+                        </p>
+                      </div>
+                    </div>
+
+                    {invoice.sale?.items && invoice.sale.items.length > 0 && (
+                      <div className="mt-4 rounded-xl border border-gray-100">
+                        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                          <p className="text-sm font-semibold text-gray-900">Articles facturés</p>
+                          <p className="text-xs text-gray-500">
+                            {invoice.sale.items.length} ligne(s)
+                          </p>
+                        </div>
+                        <div className="divide-y divide-gray-100">
+                          {invoice.sale.items.slice(0, 3).map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between gap-3 px-4 py-3"
+                            >
+                              <div className="min-w-0">
+                                <p className="truncate font-medium text-gray-900">
+                                  {item.product?.name || "Produit"}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  {item.quantity} {item.product?.unit || ""} x {formatCurrency(item.price)} DT
+                                </p>
+                              </div>
+                              <p className="shrink-0 font-semibold text-gray-900">
+                                {formatCurrency(item.quantity * item.price)} DT
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        {invoice.sale.items.length > 3 && (
+                          <div className="border-t border-gray-100 px-4 py-3 text-sm text-gray-500">
+                            + {invoice.sale.items.length - 3} autre(s) article(s)
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex shrink-0 xl:min-w-[180px] xl:justify-end">
+                    <button
+                      onClick={() => generateClientInvoicePDF(invoice)}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-700 xl:w-auto"
+                    >
+                      <Download className="h-4 w-4" />
+                      Télécharger PDF
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          filteredSupplierInvoices.map((invoice) => (
+            <div
+              key={invoice.id}
+              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Facture fournisseur</p>
+                      <h2 className="text-lg font-bold text-gray-900">{invoice.invoice_number}</h2>
+                    </div>
+                    <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                      Fournisseur
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Fournisseur</p>
+                      <p className="mt-1 font-semibold text-gray-900">
+                        {invoice.supplier_order?.supplier?.name || "N/A"}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {invoice.supplier_order?.supplier?.email || "Email non renseigné"}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Commande liée</p>
+                      <p className="mt-1 font-semibold text-gray-900">
+                        {invoice.supplier_order?.order_number || "N/A"}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Date d&apos;émission</p>
+                      <p className="mt-1 flex items-center gap-2 font-medium text-gray-900">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        {formatDate(invoice.created_at)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Montant</p>
+                      <p className="mt-1 text-xl font-bold text-gray-900">
+                        {formatCurrency(invoice.supplier_order?.total_amount || 0)} DT
+                      </p>
+                    </div>
+                  </div>
+
+                  {invoice.supplier_order?.items && invoice.supplier_order.items.length > 0 && (
+                    <div className="mt-4 rounded-xl border border-gray-100">
+                      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                        <p className="text-sm font-semibold text-gray-900">Lignes de commande</p>
+                        <p className="text-xs text-gray-500">
+                          {invoice.supplier_order.items.length} ligne(s)
+                        </p>
+                      </div>
+                      <div className="divide-y divide-gray-100">
+                        {invoice.supplier_order.items.slice(0, 3).map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between gap-3 px-4 py-3"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate font-medium text-gray-900">{item.product_name}</p>
+                              <p className="text-sm text-gray-500">
+                                {item.quantity} {item.unit || ""} x {formatCurrency(item.unit_price)} DT
+                              </p>
+                            </div>
+                            <p className="shrink-0 font-semibold text-gray-900">
+                              {formatCurrency(item.total_price)} DT
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      {invoice.supplier_order.items.length > 3 && (
+                        <div className="border-t border-gray-100 px-4 py-3 text-sm text-gray-500">
+                          + {invoice.supplier_order.items.length - 3} autre(s) ligne(s)
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex shrink-0 xl:min-w-[180px] xl:justify-end">
+                  <button
+                    onClick={() => generateSupplierInvoicePDF(invoice)}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-orange-700 xl:w-auto"
+                  >
+                    <Download className="h-4 w-4" />
+                    Télécharger PDF
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          ))
+        )}
+
+        {currentInvoices.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-500">
+              <FileText className="h-7 w-7" />
+            </div>
+            <h3 className="mt-4 text-lg font-semibold text-gray-900">
+              Aucune facture trouvée
+            </h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Essayez de modifier votre recherche ou changez d&apos;onglet pour consulter un autre type de facture.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

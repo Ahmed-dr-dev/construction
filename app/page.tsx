@@ -32,13 +32,17 @@ export default function Home() {
               <ShoppingCart className="w-5 h-5" />
               <span>Parcourir le catalogue</span>
             </Link>
+            <Link href="/track-order" className="btn btn-secondary text-lg px-8 py-3 flex items-center space-x-2">
+              <Search className="w-5 h-5" />
+              <span>Suivre une commande</span>
+            </Link>
             <Link href="/signin" className="btn btn-secondary text-lg px-8 py-3">
               Se connecter
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="card bg-gradient-to-r from-primary-600 to-primary-700 text-white text-center py-8">
             <h2 className="text-2xl font-bold mb-4">Catalogue Produits</h2>
             <p className="text-primary-100 mb-6">
@@ -55,6 +59,16 @@ export default function Home() {
             </p>
             <Link href="/signin" className="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">
               Accéder à l&apos;espace de connexion
+            </Link>
+          </div>
+          <div className="card bg-gradient-to-r from-amber-500 to-orange-500 text-white text-center py-8">
+            <h2 className="text-2xl font-bold mb-4">Suivi de Commande</h2>
+            <p className="text-orange-50 mb-6">
+              Retrouvez rapidement une commande avec son numéro, votre email ou votre téléphone.
+            </p>
+            <Link href="/track-order" className="inline-flex items-center gap-2 bg-white text-orange-600 px-6 py-2 rounded-lg font-bold hover:bg-orange-50 transition-colors">
+              <Search className="w-4 h-4" />
+              Suivre ma commande
             </Link>
           </div>
         </div>

@@ -22,7 +22,7 @@ export async function GET() {
         id,
         invoice_number,
         created_at,
-        sale:sales(
+        sale:sales!inner(
           id,
           date,
           total_amount,

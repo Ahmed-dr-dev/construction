@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
+const UNIT_REGEX = /^(?=.*[A-Za-z])[A-Za-z0-9\s/.-]+$/;
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -71,6 +73,21 @@ export async function PUT(
 
     const body = await request.json();
     const { name, category, price, stock, min_stock, unit, purchase_price } = body;
+    const normalizedUnit = unit !== undefined ? String(unit).trim() : undefined;
+
+    if (normalizedUnit !== undefined && !normalizedUnit) {
+      return NextResponse.json(
+        { error: "L'unité est requise" },
+        { status: 400 }
+      );
+    }
+
+    if (normalizedUnit !== undefined && !UNIT_REGEX.test(normalizedUnit)) {
+      return NextResponse.json(
+        { error: "L'unité doit contenir des lettres, par exemple kg, m2 ou m3" },
+        { status: 400 }
+      );
+    }
 
     const updatePayload: Record<string, unknown> = {
       name,
@@ -78,7 +95,7 @@ export async function PUT(
       price: price !== undefined ? parseFloat(price) : undefined,
       stock: stock !== undefined ? parseInt(stock) : undefined,
       min_stock: min_stock !== undefined ? parseInt(min_stock) : undefined,
-      unit,
+      unit: normalizedUnit,
       updated_at: new Date().toISOString(),
     };
     if (purchase_price !== undefined) {

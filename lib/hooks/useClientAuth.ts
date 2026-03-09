@@ -10,6 +10,12 @@ interface ClientUser {
   phone: string | null;
 }
 
+const normalizeTunisianPhone = (value: string) => {
+  const digits = value.replace(/\D/g, "");
+  const localDigits = digits.startsWith("216") ? digits.slice(3) : digits;
+  return `+216${localDigits.slice(0, 8)}`;
+};
+
 export function useClientAuth() {
   const [client, setClient] = useState<ClientUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,11 +58,23 @@ export function useClientAuth() {
     }
   };
 
-  const signUp = async (name: string, email: string, phone: string, password: string) => {
+  const signUp = async (
+    firstName: string,
+    lastName: string,
+    email: string,
+    phone: string,
+    password: string
+  ) => {
     const res = await fetch("/api/client-auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, password }),
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        phone: normalizeTunisianPhone(phone),
+        password,
+      }),
     });
 
     if (res.ok) {

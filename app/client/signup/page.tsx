@@ -6,9 +6,10 @@ import Link from "next/link";
 import { useClientAuth } from "@/lib/hooks/useClientAuth";
 
 export default function ClientSignUp() {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState("+216");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,12 @@ export default function ClientSignUp() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const { signUp, client, loading: authLoading } = useClientAuth();
+
+  const formatPhoneInput = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    const localDigits = digits.startsWith("216") ? digits.slice(3) : digits;
+    return `+216${localDigits.slice(0, 8)}`;
+  };
 
   useEffect(() => {
     if (!authLoading && client) {
@@ -26,10 +33,16 @@ export default function ClientSignUp() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!name.trim()) {
-      newErrors.name = "Le nom est requis";
-    } else if (name.trim().length < 2) {
-      newErrors.name = "Le nom doit contenir au moins 2 caractères";
+    if (!firstName.trim()) {
+      newErrors.firstName = "Le prénom est requis";
+    } else if (firstName.trim().length < 2) {
+      newErrors.firstName = "Le prénom doit contenir au moins 2 caractères";
+    }
+
+    if (!lastName.trim()) {
+      newErrors.lastName = "Le nom est requis";
+    } else if (lastName.trim().length < 2) {
+      newErrors.lastName = "Le nom doit contenir au moins 2 caractères";
     }
 
     if (!email.trim()) {
@@ -40,11 +53,8 @@ export default function ClientSignUp() {
 
     if (!phone.trim()) {
       newErrors.phone = "Le téléphone est requis";
-    } else {
-      const phoneClean = phone.replace(/\s/g, "");
-      if (!/^[\+]?[0-9]{8,15}$/.test(phoneClean)) {
-        newErrors.phone = "Numéro de téléphone invalide (8-15 chiffres)";
-      }
+    } else if (!/^\+216\d{8}$/.test(phone)) {
+      newErrors.phone = "Le téléphone doit être au format +216XXXXXXXX";
     }
 
     if (!password) {
@@ -71,7 +81,13 @@ export default function ClientSignUp() {
 
     setLoading(true);
 
-    const result = await signUp(name.trim(), email.trim(), phone.trim(), password);
+    const result = await signUp(
+      firstName.trim(),
+      lastName.trim(),
+      email.trim(),
+      phone.trim(),
+      password
+    );
 
     if (result.success) {
       router.push("/client/dashboard");
@@ -104,25 +120,48 @@ export default function ClientSignUp() {
         )}
 
         <form onSubmit={handleSignUp} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nom complet
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (errors.name) setErrors({ ...errors, name: "" });
-              }}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                errors.name ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Votre nom complet"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-            )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Prénom
+              </label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  if (errors.firstName) setErrors({ ...errors, firstName: "" });
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                  errors.firstName ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Votre prénom"
+              />
+              {errors.firstName && (
+                <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nom
+              </label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => {
+                  setLastName(e.target.value);
+                  if (errors.lastName) setErrors({ ...errors, lastName: "" });
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                  errors.lastName ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Votre nom"
+              />
+              {errors.lastName && (
+                <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+              )}
+            </div>
           </div>
 
           <div>
@@ -154,13 +193,13 @@ export default function ClientSignUp() {
               type="tel"
               value={phone}
               onChange={(e) => {
-                setPhone(e.target.value);
+                setPhone(formatPhoneInput(e.target.value));
                 if (errors.phone) setErrors({ ...errors, phone: "" });
               }}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                 errors.phone ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder="+212 6XX XXX XXX"
+              placeholder="+21612345678"
             />
             {errors.phone && (
               <p className="mt-1 text-sm text-red-600">{errors.phone}</p>

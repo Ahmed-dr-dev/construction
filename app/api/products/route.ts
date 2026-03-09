@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+const UNIT_REGEX = /^(?=.*[A-Za-z])[A-Za-z0-9\s/.-]+$/;
+
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -64,10 +66,18 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { name, category, price, stock, min_stock, unit, purchase_price } = body;
+    const normalizedUnit = String(unit || '').trim();
 
-    if (!name || !category || price === undefined || stock === undefined || min_stock === undefined || !unit) {
+    if (!name || !category || price === undefined || stock === undefined || min_stock === undefined || !normalizedUnit) {
       return NextResponse.json(
         { error: 'Tous les champs sont requis' },
+        { status: 400 }
+      );
+    }
+
+    if (!UNIT_REGEX.test(normalizedUnit)) {
+      return NextResponse.json(
+        { error: "L'unité doit contenir des lettres, par exemple kg, m2 ou m3" },
         { status: 400 }
       );
     }
@@ -78,7 +88,7 @@ export async function POST(request: Request) {
       price: parseFloat(price),
       stock: parseInt(stock),
       min_stock: parseInt(min_stock),
-      unit,
+      unit: normalizedUnit,
     };
     if (purchase_price !== undefined && purchase_price !== "" && purchase_price !== null) {
       const v = parseFloat(purchase_price);

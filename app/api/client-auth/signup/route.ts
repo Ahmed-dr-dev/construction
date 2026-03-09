@@ -2,14 +2,28 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 
+const tunisianPhoneRegex = /^\+216\d{8}$/;
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const { name, email, phone, password } = await request.json();
+    const { firstName, lastName, email, phone, password } = await request.json();
+    const normalizedFirstName = String(firstName || '').trim();
+    const normalizedLastName = String(lastName || '').trim();
+    const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedPhone = String(phone || '').replace(/\s/g, '');
 
-    if (!name || !email || !phone || !password) {
+    if (!normalizedFirstName || !normalizedLastName || !normalizedEmail || !normalizedPhone || !password) {
       return NextResponse.json(
-        { error: 'Nom, email, téléphone et mot de passe requis' },
+        { error: 'Nom, prénom, email, téléphone et mot de passe requis' },
+        { status: 400 }
+      );
+    }
+
+    if (!tunisianPhoneRegex.test(normalizedPhone)) {
+      return NextResponse.json(
+        { error: 'Le numéro de téléphone doit être au format +216XXXXXXXX' },
         { status: 400 }
       );
     }
@@ -18,7 +32,7 @@ export async function POST(request: Request) {
     const { data: existingClient, error: existingError } = await supabase
       .from('clients')
       .select('id, email, name, phone, password_hash')
-      .eq('email', email)
+      .eq('email', normalizedEmail)
       .maybeSingle();
 
     if (existingError) {
@@ -35,8 +49,8 @@ export async function POST(request: Request) {
       const { data: updatedClient, error: updateError } = await supabase
         .from('clients')
         .update({
-          name,
-          phone,
+          name: fullName,
+          phone: normalizedPhone,
           password_hash: passwordHash,
         })
         .eq('id', existingClient.id)
@@ -80,9 +94,9 @@ export async function POST(request: Request) {
     const { data: client, error } = await supabase
       .from('clients')
       .insert({
-        name,
-        email,
-        phone,
+        name: fullName,
+        email: normalizedEmail,
+        phone: normalizedPhone,
         address: null,
         total_purchases: 0,
         unpaid_amount: 0,

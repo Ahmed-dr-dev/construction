@@ -242,7 +242,9 @@ export default function CheckoutPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Numéro de commande</p>
                   <div className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
-                    <code className="text-sm font-mono text-gray-900">{orderData.order.id.slice(0, 8)}</code>
+                    <code className="text-xs sm:text-sm font-mono text-gray-900 break-all mr-3">
+                      {orderData.order.id}
+                    </code>
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(orderData.order.id);
@@ -276,6 +278,15 @@ export default function CheckoutPage() {
             </div>
 
             <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setShowOrderSuccessModal(false);
+                  router.push(`/track-order?order_id=${encodeURIComponent(orderData.order.id)}`);
+                }}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Suivre ma commande
+              </button>
               <button
                 onClick={() => {
                   setShowOrderSuccessModal(false);

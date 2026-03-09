@@ -52,7 +52,7 @@ export default function Sidebar({ userRole = "admin" }: SidebarProps) {
     { href: "/dashboard/invoices", label: "Factures", icon: FileText, roles: ["admin", "employee"] },
     { href: "/dashboard/profitability", label: "Rentabilité", icon: TrendingUp, roles: ["admin", "employee"] },
     { href: "/dashboard/recommendations", label: "Recommandations", icon: ClipboardList, roles: ["admin", "employee"] },
-    { href: "/dashboard/assistant", label: "Assistant", icon: MessageCircle, roles: ["admin", "employee"] },
+    { href: "/dashboard/assistant", label: "Dashboard", icon: MessageCircle, roles: ["admin", "employee"] },
   ];
 
   const isComptable = userRole === "comptable";
