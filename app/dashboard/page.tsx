@@ -121,6 +121,22 @@ export default function Dashboard() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })} DT`;
+  const formatRevenueTooltip = (value: number | string | undefined) =>
+    [`${Number(value ?? 0).toFixed(2)} DT`, "CA"] as const;
+  const formatQuantityTooltip = (
+    value: number | string | undefined,
+    _name?: string,
+    item?: { payload?: { unit?: string } }
+  ) => [`${Number(value ?? 0)} ${item?.payload?.unit || ""}`, "Quantité"] as const;
+  const formatStockTooltip = (
+    value: number | string | undefined,
+    _name?: string,
+    item?: { payload?: { status?: string; min_stock?: number } }
+  ) =>
+    [
+      `${Number(value ?? 0)} (min: ${item?.payload?.min_stock ?? 0}) - ${item?.payload?.status || ""}`,
+      "Stock",
+    ] as const;
 
   const kpiCards = [
     {
@@ -208,7 +224,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v} DT`} />
-                  <Tooltip formatter={(v: number) => [`${v.toFixed(2)} DT`, "CA"]} labelFormatter={(l) => formatDate(l)} />
+                  <Tooltip formatter={formatRevenueTooltip} labelFormatter={(l) => formatDate(l)} />
                   <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2} name="Chiffre d'affaires" />
                 </LineChart>
               </ResponsiveContainer>
@@ -226,7 +242,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v} DT`} />
-                  <Tooltip formatter={(v: number) => [`${v.toFixed(2)} DT`, "CA"]} />
+                  <Tooltip formatter={formatRevenueTooltip} />
                   <Bar dataKey="total" fill="#22c55e" name="Chiffre d'affaires" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -247,7 +263,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" tick={{ fontSize: 10 }} />
                   <YAxis type="category" dataKey="name" width={75} tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={(v: number, name: string, props: { payload: { unit: string } }) => [`${v} ${props?.payload?.unit || ""}`, "Quantité"]} />
+                  <Tooltip formatter={formatQuantityTooltip} />
                   <Bar dataKey="quantity" fill="#3b82f6" name="Quantité vendue" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -269,13 +285,13 @@ export default function Dashboard() {
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
-                    label={({ name, status }) => `${name} (${status})`}
+                    label={({ name, payload }) => `${name} (${payload?.status ?? ""})`}
                   >
                     {analytics.stockEvolution.map((_, index) => (
                       <Cell key={index} fill={COLORS[["Disponible", "Stock faible", "Rupture"].indexOf(_.status) % 3]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v: number, name: string, props: { payload: { status: string; min_stock: number } }) => [`${v} (min: ${props?.payload?.min_stock}) - ${props?.payload?.status}`, "Stock"]} />
+                  <Tooltip formatter={formatStockTooltip} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
