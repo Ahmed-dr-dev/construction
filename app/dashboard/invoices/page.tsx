@@ -274,7 +274,7 @@ export default function InvoicesPage() {
     const pageHeight = doc.internal.pageSize.getHeight();
     
     // Colors
-    const primaryColor = [255, 152, 0]; // Orange for supplier
+    const primaryColor = [41, 128, 185];
     const lightGray = [245, 245, 245];
     const darkGray = [51, 51, 51];
     
@@ -298,7 +298,7 @@ export default function InvoicesPage() {
     // Invoice Title
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
-    doc.text("FACTURE FOURNISSEUR", pageWidth / 2, 60, { align: "center" });
+    doc.text("FACTURE", pageWidth / 2, 60, { align: "center" });
     
     // Invoice Number and Date Section
     let yPos = 75;
@@ -323,7 +323,7 @@ export default function InvoicesPage() {
     // Supplier Information Section
     yPos += 10;
     doc.setFillColor(...lightGray);
-    doc.roundedRect(20, yPos - 5, pageWidth - 40, 35, 3, 3, 'F');
+    doc.roundedRect(20, yPos - 5, pageWidth - 40, 30, 3, 3, 'F');
     
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -337,22 +337,22 @@ export default function InvoicesPage() {
         doc.text(`Email: ${supplier.email}`, 25, yPos + 14);
       }
     }
-    
-    if (order) {
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Statut:", pageWidth - 80, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(46, 125, 50);
+    doc.text("Validée", pageWidth - 45, yPos);
+    doc.setTextColor(...darkGray);
+
+    if (order?.order_date) {
       doc.setFont("helvetica", "bold");
-      doc.text("Commande N°:", 25, yPos + 22);
+      doc.text("Date commande:", pageWidth - 80, yPos + 14);
       doc.setFont("helvetica", "normal");
-      doc.text(order.order_number, 65, yPos + 22);
-      
-      if (order.order_date) {
-        doc.setFont("helvetica", "bold");
-        doc.text("Date Commande:", pageWidth - 80, yPos + 8);
-        doc.setFont("helvetica", "normal");
-        doc.text(new Date(order.order_date).toLocaleDateString("fr-FR"), pageWidth - 45, yPos + 8);
-      }
+      doc.text(new Date(order.order_date).toLocaleDateString("fr-FR"), pageWidth - 45, yPos + 14);
     }
     
-    yPos += 45;
+    yPos += 40;
     
     // Items Table Header
     doc.setFillColor(...primaryColor);
@@ -362,8 +362,8 @@ export default function InvoicesPage() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.text("DESIGNATION", 25, yPos);
-    doc.text("QTÉ", 130, yPos);
-    doc.text("PRIX UNIT.", 160, yPos);
+    doc.text("QTÉ", 120, yPos);
+    doc.text("PRIX UNIT.", 145, yPos);
     doc.text("TOTAL", pageWidth - 25, yPos, { align: "right" });
     
     doc.setTextColor(...darkGray);
@@ -387,7 +387,7 @@ export default function InvoicesPage() {
         const unit = item.unit || "";
         
         // Truncate long product names
-        const maxWidth = 100;
+        const maxWidth = 95;
         const nameLines = doc.splitTextToSize(productName, maxWidth);
         doc.setFontSize(9);
         doc.text(nameLines[0], 25, itemY);
@@ -395,8 +395,8 @@ export default function InvoicesPage() {
           doc.text(nameLines[1], 25, itemY + 5);
         }
         
-        doc.text(`${quantity} ${unit}`, 130, itemY);
-        doc.text(`${unitPrice.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`, 160, itemY);
+        doc.text(`${quantity} ${unit}`, 120, itemY);
+        doc.text(`${unitPrice.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`, 145, itemY);
         doc.text(`${total.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`, pageWidth - 25, itemY, { align: "right" });
       });
       
@@ -427,7 +427,7 @@ export default function InvoicesPage() {
     doc.setFontSize(8);
     doc.setFont("helvetica", "italic");
     doc.setTextColor(128, 128, 128);
-    doc.text("Document comptable - Facture fournisseur", pageWidth / 2, pageHeight - 25, { align: "center" });
+    doc.text("Merci de votre confiance!", pageWidth / 2, pageHeight - 25, { align: "center" });
     doc.text("Pour toute question, veuillez nous contacter.", pageWidth / 2, pageHeight - 20, { align: "center" });
     doc.text(`Document généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`, pageWidth / 2, pageHeight - 15, { align: "center" });
     
