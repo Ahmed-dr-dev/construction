@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { Plus, Search, Eye, Calendar, FileText, Edit2, CheckCircle2 } from "lucide-react";
 
 interface Product {
@@ -37,6 +38,7 @@ interface Sale {
 }
 
 export default function SalesPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable", "personnel"]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -363,6 +365,7 @@ export default function SalesPage() {
   const paidSales = sales.filter((s) => s.status === "paid").length;
   const unpaidSales = sales.filter((s) => s.status === "unpaid").length;
 
+  if (!isAuthorized) return null;
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">

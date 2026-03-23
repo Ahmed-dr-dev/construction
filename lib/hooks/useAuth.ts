@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { type UserRole } from '@/types/database';
+
 interface User {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'employee' | 'comptable';
+  role: UserRole;
 }
 
 export function useAuth() {
@@ -52,7 +54,7 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'employee' | 'comptable') => {
+  const signUp = async (email: string, password: string, fullName: string, role: UserRole) => {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

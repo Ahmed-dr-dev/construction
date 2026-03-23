@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Download, FileText, Calendar, Users, Truck } from "lucide-react";
 import jsPDF from "jspdf";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 
 interface ClientInvoice {
   id: string;
@@ -56,6 +57,7 @@ interface SupplierInvoice {
 }
 
 export default function InvoicesPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable"]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"client" | "supplier">("client");
   const [clientInvoices, setClientInvoices] = useState<ClientInvoice[]>([]);
@@ -474,6 +476,7 @@ export default function InvoicesPage() {
       inv.supplier_order?.order_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (!isAuthorized) return null;
   if (loading) {
     return <div className="text-center py-12 text-gray-600">Chargement...</div>;
   }

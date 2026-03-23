@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { Plus, Search, Edit2, Trash2, User, Phone, Mail, MapPin } from "lucide-react";
 
 interface Client {
@@ -14,6 +15,7 @@ interface Client {
 }
 
 export default function ClientsPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable", "personnel"]);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -177,6 +179,7 @@ export default function ClientsPage() {
   const totalUnpaid = clients.reduce((sum, c) => sum + (c.unpaid_amount || 0), 0);
   const clientsWithDebt = clients.filter((c) => (c.unpaid_amount || 0) > 0).length;
 
+  if (!isAuthorized) return null;
   if (loading) {
     return <div className="text-center py-12 text-gray-600">Chargement...</div>;
   }

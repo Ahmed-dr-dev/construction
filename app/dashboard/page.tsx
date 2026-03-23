@@ -11,6 +11,8 @@ import {
   Users,
   BarChart3,
   Package,
+  PlusCircle,
+  ArrowRight,
 } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import Link from "next/link";
@@ -24,14 +26,17 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts";
+import { useAuth } from "@/lib/hooks/useAuth";
+
 const COLORS = ["#22c55e", "#f97316", "#ef4444"]; // Disponible, Stock faible, Rupture
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalSales: 0,
     totalProducts: 0,
@@ -113,6 +118,127 @@ export default function Dashboard() {
 
   if (loading) {
     return <div className="text-center py-12 text-gray-600">Chargement...</div>;
+  }
+
+  // ── Vue simplifiée pour le personnel ──────────────────────────────────────
+  if (user?.role === "personnel" || user?.role === "employee") {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <ShoppingCart className="w-7 h-7 text-primary-500" />
+          Bonjour, {user.full_name.split(" ")[0]} 👋
+        </h1>
+
+        {/* Quick actions */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { href: "/dashboard/sales",    label: "Nouvelle vente",        icon: PlusCircle, color: "bg-primary-600" },
+            { href: "/dashboard/products", label: "Consulter les produits", icon: Package,    color: "bg-blue-600"    },
+            { href: "/dashboard/clients",  label: "Consulter les clients",  icon: Users,      color: "bg-green-600"   },
+          ].map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={action.href}
+                href={action.href}
+                className={`${action.color} text-white rounded-xl p-5 flex items-center justify-between hover:opacity-90 transition-opacity`}
+              >
+                <span className="font-semibold text-sm">{action.label}</span>
+                <Icon className="w-6 h-6 opacity-80" />
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Today's sales KPI */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="card flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-green-100">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Ventes aujourd'hui</p>
+              <p className="text-xl font-bold text-gray-900">
+                {stats.todaySales.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT
+              </p>
+            </div>
+          </div>
+          <div className="card flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-blue-100">
+              <ShoppingCart className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Total des ventes</p>
+              <p className="text-xl font-bold text-gray-900">{stats.totalSalesCount} transactions</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stock alerts */}
+        {lowStockProducts.length > 0 && (
+          <div className="card">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-gray-900 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-orange-500" />
+                Alertes stock à surveiller
+              </h2>
+              <Link href="/dashboard/products" className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1">
+                Voir tout <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {lowStockProducts.slice(0, 5).map((p) => (
+                <div key={p.id} className={`flex items-center justify-between p-3 rounded-lg border ${p.stock === 0 ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"}`}>
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm">{p.name}</p>
+                    <p className="text-xs text-gray-500">Stock : {p.stock} / Min : {p.min_stock} {p.unit ? `(${p.unit})` : ""}</p>
+                  </div>
+                  {p.stock === 0
+                    ? <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">Rupture</span>
+                    : <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">Stock faible</span>
+                  }
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent sales */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary-500" />
+              Ventes récentes
+            </h2>
+            <Link href="/dashboard/sales" className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1">
+              Voir tout <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {recentSales.length === 0 ? (
+              <p className="text-gray-500 text-sm text-center py-4">Aucune vente récente</p>
+            ) : (
+              recentSales.slice(0, 5).map((sale) => (
+                <div key={sale.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm">{sale.client?.name || "Client inconnu"}</p>
+                    <p className="text-xs text-gray-500">{formatDate(sale.date)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-900 text-sm">
+                      {sale.total_amount?.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT
+                    </p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${sale.status === "Payé" || sale.status === "paid" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
+                      {sale.status === "Payé" || sale.status === "paid" ? "Payé" : "Non payé"}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const kpis = analytics?.kpis;

@@ -46,11 +46,14 @@ export async function POST(request: Request) {
       },
     });
 
-    response.cookies.set('user_id', user.id, {
+    const cookieOptions = {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       maxAge: 60 * 60 * 24 * 7,
-    });
+    };
+
+    response.cookies.set('user_id',   user.id,   cookieOptions);
+    response.cookies.set('user_role', user.role, cookieOptions);
 
     return response;
   } catch (error) {

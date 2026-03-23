@@ -1,8 +1,10 @@
+export type UserRole = 'admin' | 'responsable' | 'personnel' | 'comptable' | 'employee';
+
 export interface User {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'employee' | 'comptable';
+  role: UserRole;
   created_at: string;
 }
 

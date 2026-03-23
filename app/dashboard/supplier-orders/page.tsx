@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { Plus, Search, Eye, Calendar, Truck, Package, CheckCircle2, XCircle, Clock, FileText, X, Edit2, FileText as InvoiceIcon } from "lucide-react";
 
 interface Supplier {
@@ -40,6 +41,7 @@ interface SupplierOrder {
 }
 
 export default function SupplierOrdersPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable"]);
   const [orders, setOrders] = useState<SupplierOrder[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -453,6 +455,7 @@ export default function SupplierOrdersPage() {
     );
   };
 
+  if (!isAuthorized) return null;
   if (loading) {
     return <div className="text-center py-12 text-gray-600">Chargement...</div>;
   }

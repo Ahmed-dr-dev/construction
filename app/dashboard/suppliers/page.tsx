@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { Plus, Search, Edit2, Trash2, Truck, Phone, Mail, Package, MapPin, User, Building2, CreditCard, Globe, FileText, CheckCircle2, XCircle } from "lucide-react";
 
 interface Supplier {
@@ -26,6 +27,7 @@ interface Supplier {
 }
 
 export default function SuppliersPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable"]);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
@@ -306,6 +308,7 @@ export default function SuppliersPage() {
 
   const activeSuppliers = suppliers.filter(s => s.status === "active" || !s.status);
 
+  if (!isAuthorized) return null;
   if (loading) {
     return <div className="text-center py-12 text-gray-600">Chargement...</div>;
   }

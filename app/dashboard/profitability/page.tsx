@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { DollarSign, TrendingUp, Package } from "lucide-react";
 import Link from "next/link";
 
@@ -19,6 +20,7 @@ interface ProfitabilityRow {
 }
 
 export default function ProfitabilityPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable"]);
   const [data, setData] = useState<{ products: ProfitabilityRow[]; summary: { totalCA: number; totalBenefice: number } } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +32,7 @@ export default function ProfitabilityPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  if (!isAuthorized) return null;
   if (loading) return <div className="text-center py-12 text-gray-600">Chargement...</div>;
   if (!data) return <div className="text-center py-12 text-gray-600">Erreur chargement</div>;
 

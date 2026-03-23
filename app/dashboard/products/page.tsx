@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { Plus, Search, Edit2, Trash2, Package } from "lucide-react";
 
 interface Product {
@@ -32,6 +33,7 @@ const PRODUCT_CATEGORIES = [
 ];
 
 export default function ProductsPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable", "personnel"]);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -231,6 +233,7 @@ export default function ProductsPage() {
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (!isAuthorized) return null;
   if (loading) {
     return <div className="text-center py-12 text-gray-600">Chargement...</div>;
   }

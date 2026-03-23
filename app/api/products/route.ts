@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth-guard';
+import { PERMISSIONS } from '@/lib/rbac';
 
 const UNIT_REGEX = /^(?=.*[A-Za-z])[A-Za-z0-9\s/.-]+$/;
 
@@ -40,29 +42,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const { user, error: authError } = await requireAuth(PERMISSIONS.products_write);
+    if (authError) return authError;
+
     const supabase = await createClient();
-    const cookieStore = await cookies();
-    const userId = cookieStore.get('user_id')?.value;
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      );
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (profileError ) {
-      return NextResponse.json(
-        { error: 'Accès refusé' },
-        { status: 403 }
-      );
-    }
 
     const body = await request.json();
     const { name, category, price, stock, min_stock, unit, purchase_price } = body;

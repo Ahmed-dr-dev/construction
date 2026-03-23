@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { ShoppingCart, Truck, Star, Package, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
 export default function RecommendationsPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable"]);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -15,6 +17,7 @@ export default function RecommendationsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  if (!isAuthorized) return null;
   if (loading || !data) return <div className="text-center py-12 text-gray-600">Chargement...</div>;
 
   const recs = data.orderRecommendations || [];

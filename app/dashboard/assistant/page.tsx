@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import {
   MessageCircle,
   BarChart3,
@@ -84,6 +85,7 @@ const QUESTIONS: QuestionDef[] = [
 ];
 
 export default function AssistantPage() {
+  const { isAuthorized } = useRoleGuard(["admin", "responsable"]);
   const [selectedId, setSelectedId] = useState<QuestionId | null>(null);
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState<React.ReactNode | null>(null);
@@ -366,6 +368,7 @@ export default function AssistantPage() {
     }
   };
 
+  if (!isAuthorized) return null;
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">

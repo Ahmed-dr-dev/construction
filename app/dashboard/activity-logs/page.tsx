@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
 import { History, User, Calendar } from "lucide-react";
 
 export default function ActivityLogsPage() {
+  const { isAuthorized } = useRoleGuard(["admin"]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,6 +16,7 @@ export default function ActivityLogsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  if (!isAuthorized) return null;
   if (loading) return <div className="text-center py-12 text-gray-600 dark:text-gray-400">Chargement...</div>;
 
   return (
