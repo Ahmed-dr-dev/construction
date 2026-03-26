@@ -1,4 +1,5 @@
-import { Package2 } from "lucide-react";
+import { Package2, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function AuthLayout({
   children,
@@ -6,8 +7,19 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4">
       <div className="w-full max-w-md">
+        {/* Back to home */}
+        <div className="mb-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-600 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Retour à l'accueil
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="bg-primary-600 p-3 rounded-xl">
@@ -21,6 +33,7 @@ export default function AuthLayout({
             Gestion des ventes et du stock
           </p>
         </div>
+
         {children}
       </div>
     </div>

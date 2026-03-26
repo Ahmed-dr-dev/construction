@@ -1,315 +1,138 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/lib/hooks/useAuth";
-import { useClientAuth } from "@/lib/hooks/useClientAuth";
+import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 
 export default function SignIn() {
-  const [activeSpace, setActiveSpace] = useState<"staff" | "client">("staff");
-
-  // Staff form state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Client form state
-  const [clientEmail, setClientEmail] = useState("");
-  const [clientPassword, setClientPassword] = useState("");
-  const [clientLoading, setClientLoading] = useState(false);
-  const [clientError, setClientError] = useState("");
-  const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const router = useRouter();
-  const { signIn, user, loading: authLoading } = useAuth();
-  const {
-    signIn: clientSignIn,
-    client,
-    loading: clientAuthLoading,
-  } = useClientAuth();
+  const [email,    setEmail]    = useState("");
+  const [password, setPassword] = useState("");
+  const [showPwd,  setShowPwd]  = useState(false);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState("");
 
-  useEffect(() => {
-    if (!authLoading && user) {
-      router.push("/dashboard");
-    }
-  }, [user, authLoading, router]);
-
-  useEffect(() => {
-    if (!clientAuthLoading && client) {
-      router.push("/client/dashboard");
-    }
-  }, [client, clientAuthLoading, router]);
-
-  const validateStaffForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    // Email validation
-    if (!email.trim()) {
-      newErrors.email = "L'email est requis";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Format d'email invalide";
-    }
-
-    // Password validation
-    if (!password) {
-      newErrors.password = "Le mot de passe est requis";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateClientForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!clientEmail.trim()) {
-      newErrors.email = "L'email est requis";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) {
-      newErrors.email = "Format d'email invalide";
-    }
-
-    if (!clientPassword) {
-      newErrors.password = "Le mot de passe est requis";
-    }
-
-    setClientErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleStaffSignIn = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!validateStaffForm()) {
+    if (!email.trim() || !password) {
+      setError("Veuillez remplir tous les champs.");
       return;
     }
 
     setLoading(true);
+    try {
+      const res  = await fetch("/api/auth/unified-signin", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
 
-    const result = await signIn(email.trim(), password);
-    
-    if (result.success) {
-      router.push("/dashboard");
-    } else {
-      setError(result.error || "Erreur lors de la connexion");
+      if (!res.ok) {
+        setError(data.error || "Erreur lors de la connexion");
+        return;
+      }
+
+      router.push(data.redirectTo);
+    } catch {
+      setError("Erreur réseau. Veuillez réessayer.");
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleClientSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setClientError("");
-
-    if (!validateClientForm()) {
-      return;
-    }
-
-    setClientLoading(true);
-
-    const result = await clientSignIn(clientEmail.trim(), clientPassword);
-
-    if (result.success) {
-      router.push("/client/dashboard");
-    } else {
-      setClientError(result.error || "Erreur lors de la connexion");
-      setClientLoading(false);
-    }
-  };
-
-  if (authLoading || clientAuthLoading) {
-    return (
-      <div className="card">
-        <div className="text-center text-gray-600">Chargement...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="card">
-      <h2 className="text-2xl font-bold text-center mb-4">Espace de connexion</h2>
-
-      <div className="flex mb-6 rounded-lg overflow-hidden border border-gray-200">
-        <button
-          type="button"
-          onClick={() => setActiveSpace("staff")}
-          className={`flex-1 py-2 text-sm font-medium ${
-            activeSpace === "staff"
-              ? "bg-primary-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-50"
-          }`}
-        >
-          Espace gestion
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSpace("client")}
-          className={`flex-1 py-2 text-sm font-medium ${
-            activeSpace === "client"
-              ? "bg-primary-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-50"
-          }`}
-        >
-          Espace client
-        </button>
+      <div className="mb-6 text-center space-y-1">
+        <h2 className="text-2xl font-bold text-gray-900">Connexion</h2>
+        <p className="text-sm text-gray-500">
+          Entrez vos identifiants pour accéder à votre espace
+        </p>
       </div>
 
-      {activeSpace === "staff" ? (
-        <>
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleStaffSignIn} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="label">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (errors.email) setErrors({ ...errors, email: "" });
-                }}
-                className={`input ${errors.email ? "border-red-500" : ""}`}
-                required
-                placeholder="admin@exemple.com"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="label">
-                Mot de passe
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) setErrors({ ...errors, password: "" });
-                }}
-                className={`input ${errors.password ? "border-red-500" : ""}`}
-                required
-                placeholder="••••••••"
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary w-full"
-            >
-              {loading ? "Connexion..." : "Se connecter (gestion)"}
-            </button>
-          </form>
-
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              <Link
-                href="/forgot-password"
-                className="text-primary-600 hover:underline font-medium"
-              >
-                Mot de passe oublié ?
-              </Link>
-            </p>
-          </div>
-        </>
-      ) : (
-        <>
-          {clientError && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-              {clientError}
-            </div>
-          )}
-
-          <form onSubmit={handleClientSignIn} className="space-y-4">
-            <div>
-              <label htmlFor="client-email" className="label">
-                Email
-              </label>
-              <input
-                id="client-email"
-                type="email"
-                value={clientEmail}
-                onChange={(e) => {
-                  setClientEmail(e.target.value);
-                  if (clientErrors.email)
-                    setClientErrors({ ...clientErrors, email: "" });
-                }}
-                className={`input ${clientErrors.email ? "border-red-500" : ""}`}
-                required
-                placeholder="votre@email.com"
-              />
-              {clientErrors.email && (
-                <p className="mt-1 text-sm text-red-600">
-                  {clientErrors.email}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="client-password" className="label">
-                Mot de passe
-              </label>
-              <input
-                id="client-password"
-                type="password"
-                value={clientPassword}
-                onChange={(e) => {
-                  setClientPassword(e.target.value);
-                  if (clientErrors.password)
-                    setClientErrors({ ...clientErrors, password: "" });
-                }}
-                className={`input ${clientErrors.password ? "border-red-500" : ""}`}
-                required
-                placeholder="••••••••"
-              />
-              {clientErrors.password && (
-                <p className="mt-1 text-sm text-red-600">
-                  {clientErrors.password}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={clientLoading}
-              className="btn btn-primary w-full"
-            >
-              {clientLoading ? "Connexion..." : "Se connecter (client)"}
-            </button>
-          </form>
-
-          <div className="text-center mt-4 space-y-2">
-            <p className="text-sm text-gray-600">
-              Pas encore de compte ?{" "}
-              <Link
-                href="/client/signup"
-                className="text-primary-600 hover:underline font-medium"
-              >
-                Créer un compte client
-              </Link>
-            </p>
-            <p className="text-xs text-gray-500">
-              Vous pouvez créer un compte client pour suivre vos commandes et gérer
-              vos informations.
-            </p>
-          </div>
-        </>
+      {error && (
+        <div className="mb-5 flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+          <span className="mt-0.5">⚠</span>
+          <span>{error}</span>
+        </div>
       )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Email */}
+        <div>
+          <label htmlFor="email" className="label">Email</label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              className="input pl-9 w-full"
+              placeholder="votre@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Password */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="password" className="label mb-0">Mot de passe</label>
+            <Link href="/forgot-password" className="text-xs text-primary-600 hover:underline">
+              Mot de passe oublié ?
+            </Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              id="password"
+              type={showPwd ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              className="input pl-9 pr-10 w-full"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPwd((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+            >
+              {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn btn-primary w-full flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <LogIn className="w-4 h-4" />
+          )}
+          {loading ? "Connexion en cours..." : "Se connecter"}
+        </button>
+      </form>
+
+      <div className="mt-6 pt-5 border-t border-gray-100 text-center space-y-1">
+        <p className="text-xs text-gray-400">Pas encore de compte client ?</p>
+        <Link
+          href="/client/signup"
+          className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
+        >
+          Créer un compte client
+        </Link>
+      </div>
     </div>
   );
 }
-

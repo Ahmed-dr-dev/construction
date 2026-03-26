@@ -75,7 +75,7 @@ export default function Home() {
       </div>
 
       <footer className="text-center py-8 text-gray-600 border-t border-gray-200">
-        <p>&copy; 2025 Gestion Construction. Tous droits réservés.</p>
+        <p>&copy; 2026 Gestion Construction. Tous droits réservés.</p>
       </footer>
     </div>
   );
