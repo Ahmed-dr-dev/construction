@@ -57,38 +57,14 @@ const NAV_ADMIN: NavSection[] = [
   {
     title: "Vue générale",
     items: [
-      { href: "/dashboard",                    label: "Tableau de bord",        icon: LayoutDashboard },
-    ],
-  },
-  {
-    title: "Commerce",
-    items: [
-      { href: "/dashboard/products",           label: "Produits",               icon: Package },
-      { href: "/dashboard/sales",              label: "Ventes",                 icon: ShoppingCart },
-      { href: "/dashboard/clients",            label: "Clients",                icon: Users },
-      { href: "/dashboard/invoices",           label: "Factures",               icon: FileText },
-    ],
-  },
-  {
-    title: "Approvisionnement",
-    items: [
-      { href: "/dashboard/suppliers",          label: "Fournisseurs",           icon: Truck },
-      { href: "/dashboard/supplier-orders",    label: "Commandes Fournisseurs", icon: ShoppingBag },
-    ],
-  },
-  {
-    title: "Analytique",
-    items: [
-      { href: "/dashboard/profitability",      label: "Rentabilité",            icon: TrendingUp },
-      { href: "/dashboard/recommendations",   label: "Recommandations",        icon: ClipboardList },
-      { href: "/dashboard/assistant",          label: "Assistant IA",           icon: MessageCircle },
+      { href: "/dashboard",                    label: "Tableau de bord",       icon: LayoutDashboard },
     ],
   },
   {
     title: "Administration",
     items: [
-      { href: "/dashboard/comptable-accounts", label: "Gestion des comptes",   icon: UserCog },
-      { href: "/dashboard/activity-logs",      label: "Journaux d'activité",   icon: Activity },
+      { href: "/dashboard/comptable-accounts", label: "Gestion des comptes",  icon: UserCog },
+      { href: "/dashboard/activity-logs",      label: "Journaux d'activité",  icon: Activity },
     ],
   },
 ];

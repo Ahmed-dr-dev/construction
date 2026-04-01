@@ -44,6 +44,17 @@ export async function POST(request: Request) {
       const role       = staffUser.role as UserRole;
       const redirectTo = getRedirectForRole(role);
 
+      // Log login + update last_login_at (fire-and-forget)
+      Promise.all([
+        supabase.from('activity_logs').insert({
+          user_id:     staffUser.id,
+          action:      'login',
+          entity_type: 'user',
+          details:     `Connexion de ${staffUser.full_name}`,
+        }),
+        supabase.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', staffUser.id),
+      ]).catch(() => {});
+
       const res = NextResponse.json({
         userType: 'staff',
         role,
