@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { can } from "@/lib/rbac";
 import { Plus, Search, Edit2, Trash2, User, Phone, Mail, MapPin } from "lucide-react";
 
 interface Client {
@@ -16,6 +18,8 @@ interface Client {
 
 export default function ClientsPage() {
   const { isAuthorized } = useRoleGuard(["admin", "responsable", "personnel"]);
+  const { user } = useAuth();
+  const canMutate = !!user && can(user.role, "clients_write");
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -191,17 +195,19 @@ export default function ClientsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Gestion des Clients</h1>
           <p className="text-gray-600 mt-1">{totalClients} clients enregistrés</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingClient(null);
-            setFormData({ name: "", phone: "", email: "", address: "" });
-            setShowModal(true);
-          }}
-          className="btn btn-primary flex items-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Nouveau Client</span>
-        </button>
+        {canMutate && (
+          <button
+            onClick={() => {
+              setEditingClient(null);
+              setFormData({ name: "", phone: "", email: "", address: "" });
+              setShowModal(true);
+            }}
+            className="btn btn-primary flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nouveau Client</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -249,20 +255,22 @@ export default function ClientsPage() {
                     <p className="text-sm text-gray-600">ID: {client.id.slice(0, 8)}...</p>
                   </div>
                 </div>
-                <div className="flex space-x-1">
-                  <button
-                    onClick={() => handleEdit(client)}
-                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(client.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {canMutate && (
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => handleEdit(client)}
+                      className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(client.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2 mb-3">

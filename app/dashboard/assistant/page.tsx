@@ -376,9 +376,11 @@ export default function AssistantPage() {
           <MessageCircle className="w-8 h-8 text-primary-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard analytique</h1>
+          <p className="text-sm font-medium text-primary-600 mb-0.5">Assistant intelligent</p>
+          <h1 className="text-2xl font-bold text-gray-900">Questions fréquentes</h1>
           <p className="text-gray-600">
-            Posez des questions pour obtenir des réponses basées sur vos données (CA, stock, ventes, fournisseurs).
+            Choisissez une question pour obtenir une réponse basée sur vos données (CA, stock, ventes,
+            fournisseurs).
           </p>
         </div>
       </div>

@@ -57,7 +57,7 @@ interface SupplierInvoice {
 }
 
 export default function InvoicesPage() {
-  const { isAuthorized } = useRoleGuard(["admin", "responsable"]);
+  const { isAuthorized } = useRoleGuard(["admin", "responsable", "comptable"]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"client" | "supplier">("client");
   const [clientInvoices, setClientInvoices] = useState<ClientInvoice[]>([]);

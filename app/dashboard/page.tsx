@@ -440,7 +440,9 @@ export default function Dashboard() {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <ShoppingCart className="w-7 h-7 text-primary-500" />
-          Bonjour, {user.full_name.split(" ")[0]} 👋
+          {user?.role === "personnel"
+            ? "Bonjour Imen 👋"
+            : `Bonjour, ${user?.full_name?.split(" ")[0] ?? ""} 👋`}
         </h1>
 
         {/* Quick actions */}

@@ -15,7 +15,7 @@ export const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
   // Admin + Responsable
   '/dashboard/suppliers':          ['admin', 'responsable'],
   '/dashboard/supplier-orders':    ['admin', 'responsable'],
-  '/dashboard/invoices':           ['admin', 'responsable'],
+  '/dashboard/invoices':           ['admin', 'responsable', 'comptable'],
   '/dashboard/profitability':      ['admin', 'responsable'],
   '/dashboard/recommendations':    ['admin', 'responsable'],
   '/dashboard/assistant':          ['admin', 'responsable'],
@@ -78,7 +78,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   admin:       'Administrateur',
   responsable: 'Responsable',
   personnel:   'Personnel',
-  comptable:   'Comptable',
+  comptable:   'Mariem',
   employee:    'Employé',
 };
 

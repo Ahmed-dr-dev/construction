@@ -1,55 +1,30 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { requireAuth } from '@/lib/auth-guard';
+import { PERMISSIONS } from '@/lib/rbac';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireAuth(PERMISSIONS.suppliers_write);
+    if (error) return error;
+
     const supabase = await createClient();
-    const cookieStore = await cookies();
-    const userId = cookieStore.get('user_id')?.value;
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      );
-    }
-
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Accès refusé' },
-        { status: 403 }
-      );
-    }
-
-    const { data, error } = await supabase
+    const { data, error: dbError } = await supabase
       .from('suppliers')
       .select('*')
       .eq('id', params.id)
       .single();
 
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+    if (dbError) {
+      return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
     return NextResponse.json({ supplier: data });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Erreur serveur' },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
 
@@ -58,35 +33,15 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireAuth(PERMISSIONS.suppliers_write);
+    if (error) return error;
+
     const supabase = await createClient();
-    const cookieStore = await cookies();
-    const userId = cookieStore.get('user_id')?.value;
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      );
-    }
-
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Accès refusé' },
-        { status: 403 }
-      );
-    }
-
     const body = await request.json();
-    const { 
-      name, 
-      phone, 
-      email, 
+    const {
+      name,
+      phone,
+      email,
       products,
       contact_person,
       address,
@@ -99,10 +54,10 @@ export async function PUT(
       bank_account,
       website,
       status,
-      notes
+      notes,
     } = body;
 
-    const { data, error } = await supabase
+    const { data, error: dbError } = await supabase
       .from('suppliers')
       .update({
         name,
@@ -114,7 +69,11 @@ export async function PUT(
         country: country || null,
         tax_id: tax_id || null,
         registration_number: registration_number || null,
-        products: Array.isArray(products) ? products : (products ? products.split(',').map((p: string) => p.trim()).filter((p: string) => p) : []),
+        products: Array.isArray(products)
+          ? products
+          : products
+            ? products.split(',').map((p: string) => p.trim()).filter((p: string) => p)
+            : [],
         payment_terms: payment_terms || null,
         bank_name: bank_name || null,
         bank_account: bank_account || null,
@@ -127,19 +86,13 @@ export async function PUT(
       .select()
       .single();
 
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+    if (dbError) {
+      return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
     return NextResponse.json({ supplier: data });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Erreur serveur' },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
 
@@ -148,47 +101,18 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireAuth(PERMISSIONS.suppliers_write);
+    if (error) return error;
+
     const supabase = await createClient();
-    const cookieStore = await cookies();
-    const userId = cookieStore.get('user_id')?.value;
+    const { error: dbError } = await supabase.from('suppliers').delete().eq('id', params.id);
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      );
-    }
-
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Accès refusé' },
-        { status: 403 }
-      );
-    }
-
-    const { error } = await supabase
-      .from('suppliers')
-      .delete()
-      .eq('id', params.id);
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+    if (dbError) {
+      return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Erreur serveur' },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

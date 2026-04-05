@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  LayoutDashboard,
   Receipt,
   FileText,
   CreditCard,
@@ -39,7 +38,7 @@ export default function ComptableDashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-gray-500">
-        Chargement du tableau de bord comptable...
+        Chargement…
       </div>
     );
   }
@@ -47,7 +46,7 @@ export default function ComptableDashboardPage() {
   if (error) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">
-        <p className="font-medium">Impossible de charger le tableau de bord</p>
+        <p className="font-medium">Impossible de charger les données</p>
         <p className="text-sm mt-1">{error}</p>
       </div>
     );
@@ -115,15 +114,9 @@ export default function ComptableDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <LayoutDashboard className="w-8 h-8 text-primary-600" />
-          Tableau de bord comptable
-        </h1>
-        <p className="text-gray-600 mt-1">
-          Suivi comptable et financier du magasin — recettes, dépenses, factures et rapports.
-        </p>
-      </div>
+      <p className="text-gray-600">
+        Suivi financier du magasin — recettes, dépenses, factures et rapports.
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {cards.map((card) => {
@@ -200,7 +193,7 @@ export default function ComptableDashboardPage() {
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </Link>
             <Link
-              href="/dashboard/comptable/invoices"
+              href="/dashboard/invoices"
               className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
             >
               <span className="font-medium text-gray-900">Gérer les factures (clients & fournisseurs)</span>
