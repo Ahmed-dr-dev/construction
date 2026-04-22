@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRoleGuard } from "@/lib/hooks/useRoleGuard";
-import { DollarSign, TrendingUp, Package } from "lucide-react";
+import { Coins, TrendingUp, Package } from "lucide-react";
 import Link from "next/link";
 
 interface ProfitabilityRow {
@@ -54,7 +54,7 @@ export default function ProfitabilityPage() {
                 {summary.totalCA.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT
               </p>
             </div>
-            <DollarSign className="w-10 h-10 text-green-600" />
+            <Coins className="w-10 h-10 text-green-600" />
           </div>
         </div>
         <div className="card bg-primary-50 border-primary-200">

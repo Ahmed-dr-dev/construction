@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {
-  DollarSign,
+  Coins,
   ShoppingCart,
   AlertTriangle,
   TrendingUp,
@@ -226,7 +226,7 @@ export default function Dashboard() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "CA total",         value: `${fmt(biz.totalSales)} DT`,      icon: DollarSign,  bg: "bg-emerald-50", text: "text-emerald-600" },
+                { label: "CA total",         value: `${fmt(biz.totalSales)} DT`,      icon: Coins,  bg: "bg-emerald-50", text: "text-emerald-600" },
                 { label: "CA ce mois",        value: `${fmt(biz.thisMonthSales)} DT`,  icon: TrendingUp,  bg: "bg-blue-50",    text: "text-blue-600",
                   badge: biz.monthlyChange !== undefined
                     ? { label: `${biz.monthlyChange > 0 ? "+" : ""}${biz.monthlyChange}%`, pos: biz.monthlyChange >= 0 }
@@ -280,94 +280,42 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* ── Utilisateurs + Sécurité (côte à côte) ───────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Utilisateurs */}
-          <section className="space-y-4">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-              <Users className="w-4 h-4" /> Utilisateurs
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Total",    value: adminStats.users.total,    icon: Users,     bg: "bg-purple-50", text: "text-purple-600" },
-                { label: "Actifs",   value: adminStats.users.active,   icon: UserCheck, bg: "bg-green-50",  text: "text-green-600"  },
-                { label: "Inactifs", value: adminStats.users.inactive, icon: UserX,     bg: "bg-gray-50",   text: "text-gray-500"   },
-                { label: "Bloqués",  value: adminStats.users.blocked,  icon: Shield,    bg: "bg-red-50",    text: "text-red-600"    },
-              ].map((c) => {
-                const Icon = c.icon;
-                return (
-                  <div key={c.label} className="card flex items-center gap-3 p-4">
-                    <div className={`p-2 rounded-lg ${c.bg} ${c.text}`}><Icon className="w-4 h-4" /></div>
-                    <div>
-                      <p className="text-xl font-bold text-gray-900">{c.value}</p>
-                      <p className="text-xs text-gray-500">{c.label}</p>
-                    </div>
+        {/* ── Utilisateurs ───────────────────────── */}
+        <section className="space-y-4">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+            <Users className="w-4 h-4" /> Utilisateurs
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Total",    value: adminStats.users.total,    icon: Users,     bg: "bg-purple-50", text: "text-purple-600" },
+              { label: "Actifs",   value: adminStats.users.active,   icon: UserCheck, bg: "bg-green-50",  text: "text-green-600"  },
+              { label: "Inactifs", value: adminStats.users.inactive, icon: UserX,     bg: "bg-gray-50",   text: "text-gray-500"   },
+              { label: "Bloqués",  value: adminStats.users.blocked,  icon: Shield,    bg: "bg-red-50",    text: "text-red-600"    },
+            ].map((c) => {
+              const Icon = c.icon;
+              return (
+                <div key={c.label} className="card flex items-center gap-3 p-4">
+                  <div className={`p-2 rounded-lg ${c.bg} ${c.text}`}><Icon className="w-4 h-4" /></div>
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">{c.value}</p>
+                    <p className="text-xs text-gray-500">{c.label}</p>
                   </div>
-                );
-              })}
-            </div>
-            {/* Répartition par rôle */}
-            <div className="card p-4">
-              <p className="text-xs text-gray-500 mb-2 font-medium">Répartition par rôle</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(adminStats.users.byRole).map(([role, count]) => (
-                  <span key={role} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${ROLE_BADGE_CLASSES[role as UserRole] ?? "bg-gray-100 text-gray-700"}`}>
-                    {ROLE_LABELS[role as UserRole] ?? role} <b>{count}</b>
-                  </span>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Sécurité + Activités */}
-          <section className="space-y-4">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-              <Shield className="w-4 h-4" /> Sécurité & Activités (7j)
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Connexions aujourd'hui", value: adminStats.security.loginsToday,  icon: LogIn,      bg: "bg-blue-50",   text: "text-blue-600"   },
-                { label: "Comptes bloqués",        value: adminStats.users.blocked,          icon: Shield,     bg: "bg-red-50",    text: "text-red-600"    },
-                { label: "Ajouts",                 value: adminStats.activity.creates,       icon: PlusSquare, bg: "bg-green-50",  text: "text-green-600"  },
-                { label: "Modifications",          value: adminStats.activity.updates,       icon: RefreshCw,  bg: "bg-orange-50", text: "text-orange-600" },
-                { label: "Suppressions",           value: adminStats.activity.deletes,       icon: Trash2,     bg: "bg-red-50",    text: "text-red-600"    },
-                { label: "Total actions",          value: adminStats.activity.total,         icon: Activity,   bg: "bg-gray-50",   text: "text-gray-600"   },
-              ].map((c) => {
-                const Icon = c.icon;
-                return (
-                  <div key={c.label} className="card flex items-center gap-3 p-4">
-                    <div className={`p-2 rounded-lg ${c.bg} ${c.text}`}><Icon className="w-4 h-4" /></div>
-                    <div>
-                      <p className="text-xl font-bold text-gray-900">{c.value}</p>
-                      <p className="text-xs text-gray-500 leading-tight">{c.label}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {/* Mini activity chart */}
-            <div className="card p-4">
-              <p className="text-xs text-gray-500 mb-3 font-medium">Évolution des activités (7j)</p>
-              {adminStats.activity.chart.every(d => d.create + d.update + d.delete === 0) ? (
-                <p className="text-gray-400 text-xs text-center py-6">Aucune activité enregistrée</p>
-              ) : (
-                <div className="h-36">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={adminStats.activity.chart} barSize={8}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tick={{ fontSize: 9 }} />
-                      <YAxis tick={{ fontSize: 9 }} allowDecimals={false} width={20} />
-                      <Tooltip />
-                      <Bar dataKey="create" name="Ajouts"        fill="#22c55e" radius={[2,2,0,0]} />
-                      <Bar dataKey="update" name="Modifications" fill="#f97316" radius={[2,2,0,0]} />
-                      <Bar dataKey="delete" name="Suppressions"  fill="#ef4444" radius={[2,2,0,0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
                 </div>
-              )}
+              );
+            })}
+          </div>
+          {/* Répartition par rôle */}
+          <div className="card p-4">
+            <p className="text-xs text-gray-500 mb-2 font-medium">Répartition par rôle</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(adminStats.users.byRole).map(([role, count]) => (
+                <span key={role} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${ROLE_BADGE_CLASSES[role as UserRole] ?? "bg-gray-100 text-gray-700"}`}>
+                  {ROLE_LABELS[role as UserRole] ?? role} <b>{count}</b>
+                </span>
+              ))}
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
 
         {/* ── Dernières actions ───────────────────────────────────────────── */}
         <section>
@@ -470,7 +418,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="card flex items-center gap-4">
             <div className="p-3 rounded-xl bg-green-100">
-              <DollarSign className="w-6 h-6 text-green-600" />
+              <Coins className="w-6 h-6 text-green-600" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Ventes aujourd'hui</p>
@@ -584,7 +532,7 @@ export default function Dashboard() {
     {
       title: "Chiffre d'affaires total",
       value: formatMoney(kpis?.chiffreAffaires ?? stats.totalSales),
-      icon: DollarSign,
+      icon: Coins,
       color: "green" as const,
       badge: "Global",
       description: "Vue consolidée des ventes enregistrées depuis le lancement.",

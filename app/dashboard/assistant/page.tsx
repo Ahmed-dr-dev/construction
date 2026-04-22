@@ -8,7 +8,7 @@ import {
   Package,
   TrendingUp,
   Truck,
-  DollarSign,
+  Coins,
   Users,
   ClipboardList,
   ChevronRight,
@@ -37,7 +37,7 @@ const QUESTIONS: QuestionDef[] = [
   {
     id: "ca_total",
     label: "Quel est mon chiffre d'affaires total ?",
-    icon: DollarSign,
+    icon: Coins,
     description: "CA total encaissé (ventes payées)",
   },
   {

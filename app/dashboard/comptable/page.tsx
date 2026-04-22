@@ -9,7 +9,7 @@ import {
   BarChart3,
   ArrowUpCircle,
   ArrowDownCircle,
-  DollarSign,
+  Coins,
   TrendingUp,
   ChevronRight,
   AlertCircle,
@@ -69,7 +69,7 @@ export default function ComptableDashboardPage() {
       title: "Chiffre d'affaires total",
       value: `${(kpis.chiffreAffaires ?? 0).toFixed(2)} DT`,
       sub: "Encaissements (ventes payées)",
-      icon: DollarSign,
+      icon: Coins,
       href: "/dashboard/comptable/expenses-revenue",
       color: "text-green-600",
       bg: "bg-green-50",
@@ -152,7 +152,7 @@ export default function ComptableDashboardPage() {
               Voir tout <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="space-y-2 max-h-80 overflow-y-auto">
+          <div className="space-y-2 max-h-80 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {recent.length === 0 ? (
               <p className="text-gray-500 text-sm">Aucune transaction récente.</p>
             ) : (

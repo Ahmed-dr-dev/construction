@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, Download, Calendar, DollarSign, TrendingUp, ArrowDownCircle } from "lucide-react";
+import { BarChart3, Download, Calendar, Coins, TrendingUp, ArrowDownCircle } from "lucide-react";
 
 export default function ComptableReportsPage() {
   const [report, setReport] = useState<any>(null);
@@ -87,7 +87,7 @@ export default function ComptableReportsPage() {
         <div className="card bg-primary-50 border-primary-200">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-primary-100">
-              <DollarSign className="w-6 h-6 text-primary-600" />
+              <Coins className="w-6 h-6 text-primary-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Chiffre d'affaires</p>

@@ -20,12 +20,10 @@ import {
   BarChart3,
   UserCog,
   Activity,
-  Shield,
-  Briefcase,
   UserCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type UserRole, ROLE_LABELS, ROLE_BADGE_CLASSES } from "@/lib/rbac";
+import { type UserRole } from "@/lib/rbac";
 
 interface SidebarProps {
   userRole?: UserRole;
@@ -42,14 +40,6 @@ interface NavSection {
   title?: string;
   items: NavItem[];
 }
-
-const ROLE_ICONS: Record<UserRole, React.ElementType> = {
-  admin:       Shield,
-  responsable: Briefcase,
-  personnel:   UserCheck,
-  comptable:   Receipt,
-  employee:    UserCheck,
-};
 
 // ── Per-role nav definitions ──────────────────────────────────────────────────
 
@@ -142,7 +132,6 @@ export default function Sidebar({ userRole = "personnel", userName }: SidebarPro
   const pathname = usePathname();
   const router   = useRouter();
 
-  const RoleIcon = ROLE_ICONS[userRole] ?? UserCheck;
   const sections = NAV_BY_ROLE[userRole] ?? NAV_PERSONNEL;
 
   const handleSignOut = async () => {
@@ -168,13 +157,9 @@ export default function Sidebar({ userRole = "personnel", userName }: SidebarPro
         </div>
       </div>
 
-      {/* Role badge */}
+      {/* User (role shown in header only) */}
       <div className="px-4 py-3 border-b border-gray-100">
-        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${ROLE_BADGE_CLASSES[userRole]}`}>
-          <RoleIcon className="w-3 h-3" />
-          {ROLE_LABELS[userRole]}
-        </div>
-        {userName && <p className="mt-1 text-xs text-gray-500 truncate">{userName}</p>}
+        {userName && <p className="text-xs text-gray-500 truncate">{userName}</p>}
       </div>
 
       {/* Navigation */}
