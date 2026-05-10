@@ -22,7 +22,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/assistant":                   "Assistant intelligent",
   "/dashboard/comptable-accounts":          "Gestion des comptes",
   "/dashboard/activity-logs":              "Journaux d'activité",
-  "/dashboard/comptable":                   "Tableau de bord Mariem",
+  "/dashboard/comptable":                   "Tableau de bord Nawres",
   "/dashboard/comptable/transactions":      "Transactions financières",
   "/dashboard/comptable/payments":          "Paiements & encaissements",
   "/dashboard/comptable/expenses-revenue":  "Dépenses & recettes",

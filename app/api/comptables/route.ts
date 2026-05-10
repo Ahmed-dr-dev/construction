@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { requireAuth } from '@/lib/auth-guard';
@@ -76,7 +77,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Vous ne pouvez pas supprimer votre propre compte' }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error: dbError } = await supabase.from('users').delete().eq('id', id);
     if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
 
